@@ -24,20 +24,15 @@ public class RawFileServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetRawFiles_WhenInputDirectoryIsNull_ThrowsInvalidOperationException()
+    public void GetRawFiles_WhenInputDirectoryIsWhitespace_ThrowsInvalidOperationException()
     {
         // Arrange
         var settings = new PipelineSettings
         {
-            InputDirectory = string.Empty,
+            InputDirectory = "   ",
             OutputDirectory = "/some/output",
             ConfigFile = "/some/config"
         };
-        
-        // Use reflection to set InputDirectory to null to test null handling
-        var inputDirectoryProperty = typeof(PipelineSettings).GetProperty(nameof(PipelineSettings.InputDirectory));
-        inputDirectoryProperty!.SetValue(settings, null);
-        
         var service = new RawFileService(Options.Create(settings));
 
         // Act
