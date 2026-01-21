@@ -2,6 +2,9 @@ using VodDashboard.Api.Services;
 
 namespace VodDashboard.Api.Endpoints
 {
+    /// <summary>
+    /// Retrieves raw video file data
+    /// </summary>
     public static class RawEndpoints
     {
         public static IEndpointRouteBuilder MapRawEndpoints(this IEndpointRouteBuilder endpoints)
