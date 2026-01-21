@@ -15,8 +15,39 @@ namespace VodDashboard.Api.Endpoints
                 string.Empty,
                 (RawFileService rawService) =>
                 {
-                    var files = rawService.GetRawFiles();
-                    return Results.Ok(files);
+                    try
+                    {
+                        var files = rawService.GetRawFiles();
+                        return Results.Ok(files);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        return Results.Problem(
+                            detail: ex.Message,
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Configuration Error");
+                    }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        return Results.Problem(
+                            detail: ex.Message,
+                            statusCode: StatusCodes.Status500InternalServerError,
+                            title: "Access Denied");
+                    }
+                    catch (IOException ex)
+                    {
+                        return Results.Problem(
+                            detail: ex.Message,
+                            statusCode: StatusCodes.Status500InternalServerError,
+                            title: "File System Error");
+                    }
+                    catch (Exception)
+                    {
+                        return Results.Problem(
+                            detail: "An unexpected error occurred while retrieving raw files.",
+                            statusCode: StatusCodes.Status500InternalServerError,
+                            title: "Internal Server Error");
+                    }
                 })
             .WithName("GetRawFiles");
 
