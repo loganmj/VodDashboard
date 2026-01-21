@@ -11,6 +11,9 @@ builder.Services.Configure<PipelineSettings>(builder.Configuration.GetSection("P
 
 var app = builder.Build();
 
+// Validate RawFileService configuration at startup (fail-fast)
+_ = app.Services.GetRequiredService<RawFileService>();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
