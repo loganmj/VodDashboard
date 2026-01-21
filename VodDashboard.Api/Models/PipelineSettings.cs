@@ -2,9 +2,9 @@
 {
     public class PipelineSettings
     {
-        public string InputDirectory { get; set; } = "";
-        public string OutputDirectory { get; set; } = "";
-        public string ConfigFile { get; set; } = "";
+        public required string InputDirectory { get; set; }
+        public required string OutputDirectory { get; set; }
+        public required string ConfigFile { get; set; }
     }
 
 }

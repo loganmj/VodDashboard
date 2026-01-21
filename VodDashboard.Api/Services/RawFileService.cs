@@ -16,22 +16,26 @@ namespace VodDashboard.Api.Services
 
         public IEnumerable<RawFileDTO> GetRawFiles()
         {
+            if (string.IsNullOrWhiteSpace(_settings.InputDirectory))
+            {
+                throw new InvalidOperationException("PipelineSettings.InputDirectory is not configured.");
+            }
+
             var dir = new DirectoryInfo(_settings.InputDirectory);
 
-            if (!dir.Exists) 
+            if (!dir.Exists)
             {
-                return []; 
+                return Enumerable.Empty<RawFileDTO>();
             }
 
             return dir
                 .EnumerateFiles("*.mp4", SearchOption.TopDirectoryOnly)
                 .OrderByDescending(f => f.CreationTimeUtc)
-                .Select(f => new RawFileDTO
-                {
-                    FileName = f.Name,
-                    SizeBytes = f.Length,
-                    Created = f.CreationTimeUtc
-                });
+                .Select(f => new RawFileDTO(
+                    f.Name,
+                    f.Length,
+                    new DateTimeOffset(f.CreationTimeUtc, TimeSpan.Zero)
+                ));
         }
 
         #endregion

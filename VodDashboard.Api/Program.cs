@@ -1,5 +1,6 @@
 using VodDashboard.Api.Models;
 using VodDashboard.Api.Services;
+using VodDashboard.Api.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +38,8 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+
+app.MapRawEndpoints();
 
 app.Run();
 
