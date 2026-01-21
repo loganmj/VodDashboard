@@ -1,8 +1,7 @@
 name: "CodeQL config"
 
-# Disable automatic language detection and only analyze C#
+# Only analyze C# (repository doesn't contain GitHub Actions workflow files)
 languages:
   - csharp
 
-# We don't have GitHub Actions workflow files to analyze
 disable-default-queries: false
