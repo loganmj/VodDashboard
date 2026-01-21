@@ -14,6 +14,14 @@ namespace VodDashboard.Api.Services
 
         #region Public Methods
 
+        /// <summary>
+        /// Retrieves raw MP4 video files from the configured input directory.
+        /// </summary>
+        /// <returns>
+        /// An enumerable sequence of <see cref="RawFileDTO"/> instances representing
+        /// the MP4 files found in the input directory, ordered by creation time in
+        /// descending order. Returns an empty sequence if the directory does not exist.
+        /// </returns>
         public IEnumerable<RawFileDTO> GetRawFiles()
         {
             var dir = new DirectoryInfo(_settings.InputDirectory);
