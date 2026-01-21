@@ -373,7 +373,9 @@ public class JobServiceTests : IDisposable
         result.HasCleanVideo.Should().BeTrue();
         result.HighlightCount.Should().Be(2);
         result.SceneCount.Should().Be(3);
-        result.Created.Should().BeCloseTo(new DateTimeOffset(DateTime.UtcNow), TimeSpan.FromSeconds(5));
+        DirectoryInfo jobDirInfo = new DirectoryInfo(jobDir);
+        DateTimeOffset expectedCreated = new DateTimeOffset(jobDirInfo.CreationTimeUtc);
+        result.Created.Should().BeCloseTo(expectedCreated, TimeSpan.FromSeconds(5));
     }
 
     [Fact]
