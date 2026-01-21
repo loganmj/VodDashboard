@@ -65,8 +65,8 @@ public class RawEndpointsTests : IDisposable
 
         // Assert
         result.Should().BeOfType<Ok<IEnumerable<RawFileDTO>>>();
-        var okResult = result as Ok<IEnumerable<RawFileDTO>>;
-        okResult!.Value.Should().HaveCount(1);
+        var okResult = result.Should().BeOfType<Ok<IEnumerable<RawFileDTO>>>().Subject;
+        okResult.Value.Should().HaveCount(1);
     }
 
     [Fact]
@@ -88,8 +88,8 @@ public class RawEndpointsTests : IDisposable
 
         // Assert
         result.Should().BeOfType<ProblemHttpResult>();
-        var problemResult = result as ProblemHttpResult;
-        problemResult!.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
+        var problemResult = result.Should().BeOfType<ProblemHttpResult>().Subject;
+        problemResult.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
         problemResult.ProblemDetails.Title.Should().Be("Configuration Error");
     }
 
@@ -114,7 +114,7 @@ public class RawEndpointsTests : IDisposable
 
         // Assert
         result.Should().BeOfType<Ok<IEnumerable<RawFileDTO>>>();
-        var okResult = result as Ok<IEnumerable<RawFileDTO>>;
-        okResult!.Value.Should().BeEmpty();
+        var okResult = result.Should().BeOfType<Ok<IEnumerable<RawFileDTO>>>().Subject;
+        okResult.Value.Should().BeEmpty();
     }
 }
