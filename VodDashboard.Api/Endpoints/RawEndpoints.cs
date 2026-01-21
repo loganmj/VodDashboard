@@ -6,13 +6,13 @@ namespace VodDashboard.Api.Endpoints
     {
         public static IEndpointRouteBuilder MapRawEndpoints(this IEndpointRouteBuilder endpoints)
         {
-            RouteGroupBuilder group = endpoints.MapGroup("/api/raw");
+            var group = endpoints.MapGroup("/api/raw");
 
             group.MapGet(
                 string.Empty,
-                async (RawFileService rawService, CancellationToken cancellationToken) =>
+                (RawFileService rawService) =>
                 {
-                    var files = await rawService.GetRawFiles(cancellationToken);
+                    var files = rawService.GetRawFiles();
                     return Results.Ok(files);
                 })
             .WithName("GetRawFiles");

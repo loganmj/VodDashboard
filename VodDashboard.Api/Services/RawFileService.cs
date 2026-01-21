@@ -14,34 +14,28 @@ namespace VodDashboard.Api.Services
 
         #region Public Methods
 
-        public async Task<IEnumerable<RawFileDTO>> GetRawFiles(CancellationToken cancellationToken = default)
+        public IEnumerable<RawFileDTO> GetRawFiles()
         {
             if (string.IsNullOrWhiteSpace(_settings.InputDirectory))
             {
                 throw new InvalidOperationException("PipelineSettings.InputDirectory is not configured.");
             }
 
-            IEnumerable<RawFileDTO> result = await Task.Run(() =>
+            var dir = new DirectoryInfo(_settings.InputDirectory);
+
+            if (!dir.Exists)
             {
-                var dir = new DirectoryInfo(_settings.InputDirectory);
+                return Enumerable.Empty<RawFileDTO>();
+            }
 
-                if (!dir.Exists)
-                {
-                    return Enumerable.Empty<RawFileDTO>();
-                }
-
-                return dir
-                    .EnumerateFiles("*.mp4", SearchOption.TopDirectoryOnly)
-                    .OrderByDescending(f => f.CreationTimeUtc)
-                    .Select(f => new RawFileDTO(
-                        f.Name,
-                        f.Length,
-                        new DateTimeOffset(f.CreationTimeUtc, TimeSpan.Zero)
-                    ))
-                    .ToList();
-            }, cancellationToken);
-
-            return result;
+            return dir
+                .EnumerateFiles("*.mp4", SearchOption.TopDirectoryOnly)
+                .OrderByDescending(f => f.CreationTimeUtc)
+                .Select(f => new RawFileDTO(
+                    f.Name,
+                    f.Length,
+                    new DateTimeOffset(f.CreationTimeUtc, TimeSpan.Zero)
+                ));
         }
 
         #endregion
