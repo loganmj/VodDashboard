@@ -20,10 +20,6 @@ namespace VodDashboard.Api.Services
             {
                 throw new InvalidOperationException("PipelineSettings.InputDirectory is not configured.");
             }
-            if (string.IsNullOrWhiteSpace(_settings.InputDirectory))
-            {
-                throw new InvalidOperationException("PipelineSettings.InputDirectory is not configured.");
-            }
 
             var dir = new DirectoryInfo(_settings.InputDirectory);
 
