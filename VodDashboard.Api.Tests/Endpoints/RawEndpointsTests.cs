@@ -12,6 +12,46 @@ namespace VodDashboard.Api.Tests.Endpoints;
 
 public class RawEndpointsTests
 {
+    private static IResult ExecuteEndpointLogic(RawFileService service, ILogger<RawFileService> logger)
+    {
+        try
+        {
+            var files = service.GetRawFiles();
+            return Results.Ok(files);
+        }
+        catch (InvalidOperationException ex)
+        {
+            logger.LogError(ex, "Configuration error: {Message}", ex.Message);
+            return Results.Problem(
+                detail: ex.Message,
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Configuration Error");
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            logger.LogError(ex, "Access denied while retrieving raw files");
+            return Results.Problem(
+                detail: "Access to the file system was denied.",
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Access Denied");
+        }
+        catch (IOException ex)
+        {
+            logger.LogError(ex, "I/O error while retrieving raw files");
+            return Results.Problem(
+                detail: "A file system error occurred while retrieving raw files.",
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "File System Error");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unexpected error while retrieving raw files");
+            return Results.Problem(
+                detail: "An unexpected error occurred while retrieving raw files.",
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Internal Server Error");
+        }
+    }
 
     [Fact]
     public void GetRawFiles_WithValidFiles_ReturnsOkWithFiles()
@@ -36,44 +76,7 @@ public class RawEndpointsTests
             var service = new RawFileService(settings);
 
             // Act
-            IResult result;
-            try
-            {
-                var files = service.GetRawFiles();
-                result = Results.Ok(files);
-            }
-            catch (InvalidOperationException ex)
-            {
-                mockLogger.Object.LogError(ex, "Configuration error: {Message}", ex.Message);
-                result = Results.Problem(
-                    detail: ex.Message,
-                    statusCode: StatusCodes.Status500InternalServerError,
-                    title: "Configuration Error");
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                mockLogger.Object.LogError(ex, "Access denied while retrieving raw files");
-                result = Results.Problem(
-                    detail: "Access to the file system was denied.",
-                    statusCode: StatusCodes.Status500InternalServerError,
-                    title: "Access Denied");
-            }
-            catch (IOException ex)
-            {
-                mockLogger.Object.LogError(ex, "I/O error while retrieving raw files");
-                result = Results.Problem(
-                    detail: "A file system error occurred while retrieving raw files.",
-                    statusCode: StatusCodes.Status500InternalServerError,
-                    title: "File System Error");
-            }
-            catch (Exception ex)
-            {
-                mockLogger.Object.LogError(ex, "Unexpected error while retrieving raw files");
-                result = Results.Problem(
-                    detail: "An unexpected error occurred while retrieving raw files.",
-                    statusCode: StatusCodes.Status500InternalServerError,
-                    title: "Internal Server Error");
-            }
+            IResult result = ExecuteEndpointLogic(service, mockLogger.Object);
 
             // Assert
             result.Should().BeOfType<Ok<IEnumerable<RawFileDTO>>>();
@@ -104,44 +107,7 @@ public class RawEndpointsTests
         var service = new RawFileService(settings);
 
         // Act
-        IResult result;
-        try
-        {
-            var files = service.GetRawFiles();
-            result = Results.Ok(files);
-        }
-        catch (InvalidOperationException ex)
-        {
-            mockLogger.Object.LogError(ex, "Configuration error: {Message}", ex.Message);
-            result = Results.Problem(
-                detail: ex.Message,
-                statusCode: StatusCodes.Status500InternalServerError,
-                title: "Configuration Error");
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            mockLogger.Object.LogError(ex, "Access denied while retrieving raw files");
-            result = Results.Problem(
-                detail: "Access to the file system was denied.",
-                statusCode: StatusCodes.Status500InternalServerError,
-                title: "Access Denied");
-        }
-        catch (IOException ex)
-        {
-            mockLogger.Object.LogError(ex, "I/O error while retrieving raw files");
-            result = Results.Problem(
-                detail: "A file system error occurred while retrieving raw files.",
-                statusCode: StatusCodes.Status500InternalServerError,
-                title: "File System Error");
-        }
-        catch (Exception ex)
-        {
-            mockLogger.Object.LogError(ex, "Unexpected error while retrieving raw files");
-            result = Results.Problem(
-                detail: "An unexpected error occurred while retrieving raw files.",
-                statusCode: StatusCodes.Status500InternalServerError,
-                title: "Internal Server Error");
-        }
+        IResult result = ExecuteEndpointLogic(service, mockLogger.Object);
 
         // Assert
         result.Should().BeOfType<ProblemHttpResult>();
@@ -170,44 +136,7 @@ public class RawEndpointsTests
             var service = new RawFileService(settings);
 
             // Act
-            IResult result;
-            try
-            {
-                var files = service.GetRawFiles();
-                result = Results.Ok(files);
-            }
-            catch (InvalidOperationException ex)
-            {
-                mockLogger.Object.LogError(ex, "Configuration error: {Message}", ex.Message);
-                result = Results.Problem(
-                    detail: ex.Message,
-                    statusCode: StatusCodes.Status500InternalServerError,
-                    title: "Configuration Error");
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                mockLogger.Object.LogError(ex, "Access denied while retrieving raw files");
-                result = Results.Problem(
-                    detail: "Access to the file system was denied.",
-                    statusCode: StatusCodes.Status500InternalServerError,
-                    title: "Access Denied");
-            }
-            catch (IOException ex)
-            {
-                mockLogger.Object.LogError(ex, "I/O error while retrieving raw files");
-                result = Results.Problem(
-                    detail: "A file system error occurred while retrieving raw files.",
-                    statusCode: StatusCodes.Status500InternalServerError,
-                    title: "File System Error");
-            }
-            catch (Exception ex)
-            {
-                mockLogger.Object.LogError(ex, "Unexpected error while retrieving raw files");
-                result = Results.Problem(
-                    detail: "An unexpected error occurred while retrieving raw files.",
-                    statusCode: StatusCodes.Status500InternalServerError,
-                    title: "Internal Server Error");
-            }
+            IResult result = ExecuteEndpointLogic(service, mockLogger.Object);
 
             // Assert
             result.Should().BeOfType<Ok<IEnumerable<RawFileDTO>>>();
