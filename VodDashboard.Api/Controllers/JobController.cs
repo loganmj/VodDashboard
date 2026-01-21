@@ -5,14 +5,14 @@ namespace VodDashboard.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class JobsController(JobService jobService) : ControllerBase
+public class JobController(JobService jobService) : ControllerBase
 {
     private readonly JobService _jobService = jobService;
 
     [HttpGet]
-    public IActionResult GetJobs()
+    public async Task<IActionResult> GetJobs()
     {
-        var jobs = _jobService.GetJobs();
+        var jobs = await _jobService.GetJobsAsync();
         return Ok(jobs);
     }
 }

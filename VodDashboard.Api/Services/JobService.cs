@@ -13,8 +13,10 @@ public class JobService
         _settings = settings.Value;
     }
 
-    public IEnumerable<JobSummaryDTO> GetJobs()
+    public async Task<IEnumerable<JobSummaryDTO>> GetJobsAsync()
     {
+        if (string.IsNullOrWhiteSpace(_settings.OutputDirectory))
+            return Enumerable.Empty<JobSummaryDTO>();
         var dir = new DirectoryInfo(_settings.OutputDirectory);
 
         if (!dir.Exists)
@@ -22,34 +24,41 @@ public class JobService
             return Enumerable.Empty<JobSummaryDTO>();
         }
 
-        return dir
-            .EnumerateDirectories()
-            .OrderByDescending(d => d.CreationTimeUtc)
-            .Select(d => BuildJobSummary(d));
+        var directories = dir.EnumerateDirectories().OrderByDescending(d => d.CreationTimeUtc).ToList();
+        var tasks = directories.Select(d => BuildJobSummaryAsync(d));
+        return await Task.WhenAll(tasks);
     }
 
-    private JobSummaryDTO BuildJobSummary(DirectoryInfo jobDir)
+    private async Task<JobSummaryDTO> BuildJobSummaryAsync(DirectoryInfo jobDir)
     {
         var cleanPath = Path.Combine(jobDir.FullName, "clean.mp4");
         var highlightsDir = Path.Combine(jobDir.FullName, "highlights");
         var scenesDir = Path.Combine(jobDir.FullName, "scenes");
 
-        int highlightCount = 0;
-        if (Directory.Exists(highlightsDir))
+        var highlightCountTask = Task.Run(() =>
         {
-            highlightCount = Directory.GetFiles(highlightsDir, "*.mp4").Length;
-        }
+            if (Directory.Exists(highlightsDir))
+                return Directory.GetFiles(highlightsDir, "*.mp4").Length;
+            return 0;
+        });
 
-        int sceneCount = 0;
-        if (Directory.Exists(scenesDir))
+        var sceneCountTask = Task.Run(() =>
         {
-            sceneCount = Directory.GetFiles(scenesDir, "*.csv").Length;
-        }
+            if (Directory.Exists(scenesDir))
+                return Directory.GetFiles(scenesDir, "*.csv").Length;
+            return 0;
+        });
+
+        var hasCleanVideoTask = Task.Run(() => File.Exists(cleanPath));
+
+        var highlightCount = await highlightCountTask;
+        var sceneCount = await sceneCountTask;
+        var hasCleanVideo = await hasCleanVideoTask;
 
         return new JobSummaryDTO
         {
             Id = jobDir.Name,
-            HasCleanVideo = File.Exists(cleanPath),
+            HasCleanVideo = hasCleanVideo,
             HighlightCount = highlightCount,
             SceneCount = sceneCount,
             Created = jobDir.CreationTimeUtc
