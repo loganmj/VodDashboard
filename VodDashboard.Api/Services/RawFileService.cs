@@ -32,14 +32,25 @@ namespace VodDashboard.Api.Services
                 return Enumerable.Empty<RawFileDTO>();
             }
 
-            return dir
-                .EnumerateFiles("*.mp4", SearchOption.TopDirectoryOnly)
-                .OrderByDescending(f => f.CreationTimeUtc)
-                .Select(f => new RawFileDTO(
-                    f.Name,
-                    f.Length,
-                    new DateTimeOffset(f.CreationTimeUtc, TimeSpan.Zero)
-                ));
+            try
+            {
+                return dir
+                    .EnumerateFiles("*.mp4", SearchOption.TopDirectoryOnly)
+                    .OrderByDescending(f => f.CreationTimeUtc)
+                    .Select(f => new RawFileDTO(
+                        f.Name,
+                        f.Length,
+                        new DateTimeOffset(f.CreationTimeUtc, TimeSpan.Zero)
+                    ));
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                throw new InvalidOperationException($"Access to the input directory '{_settings.InputDirectory}' is denied.", ex);
+            }
+            catch (IOException ex)
+            {
+                throw new InvalidOperationException($"An I/O error occurred while enumerating files in the input directory '{_settings.InputDirectory}'.", ex);
+            }
         }
 
         #endregion
