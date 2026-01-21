@@ -25,7 +25,7 @@ public class JobService
         return dir
             .EnumerateDirectories()
             .OrderByDescending(d => d.CreationTimeUtc)
-            .Select(d => BuildJobSummary(d));
+            .Select(BuildJobSummary);
     }
 
     private JobSummaryDTO BuildJobSummary(DirectoryInfo jobDir)
