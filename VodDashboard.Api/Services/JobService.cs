@@ -13,7 +13,7 @@ namespace VodDashboard.Api.Services
             _settings = settings.Value;
         }
 
-        public async Task<IEnumerable<JobSummaryDTO>> GetJobsAsync()
+        public virtual async Task<IEnumerable<JobSummaryDTO>> GetJobsAsync()
         {
             if (string.IsNullOrWhiteSpace(_settings.OutputDirectory))
                 return Enumerable.Empty<JobSummaryDTO>();

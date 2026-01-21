@@ -14,7 +14,7 @@ namespace VodDashboard.Api.Services
 
         #region Public Methods
 
-        public IEnumerable<RawFileDTO> GetRawFiles()
+        public virtual IEnumerable<RawFileDTO> GetRawFiles()
         {
             if (string.IsNullOrWhiteSpace(_settings.InputDirectory))
             {
