@@ -21,7 +21,7 @@ namespace VodDashboard.Api.Endpoints
             return endpoints;
         }
 
-        public static IResult GetRawFilesHandler(RawFileService rawService, ILogger<RawFileService> logger)
+        internal static IResult GetRawFilesHandler(RawFileService rawService, ILogger<RawFileService> logger)
         {
             try
             {
