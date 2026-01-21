@@ -18,7 +18,9 @@ public class JobService
         var dir = new DirectoryInfo(_settings.OutputDirectory);
 
         if (!dir.Exists)
+        {
             return Enumerable.Empty<JobSummaryDTO>();
+        }
 
         return dir
             .EnumerateDirectories()
@@ -34,11 +36,15 @@ public class JobService
 
         int highlightCount = 0;
         if (Directory.Exists(highlightsDir))
+        {
             highlightCount = Directory.GetFiles(highlightsDir, "*.mp4").Length;
+        }
 
         int sceneCount = 0;
         if (Directory.Exists(scenesDir))
+        {
             sceneCount = Directory.GetFiles(scenesDir, "*.csv").Length;
+        }
 
         return new JobSummaryDTO
         {
