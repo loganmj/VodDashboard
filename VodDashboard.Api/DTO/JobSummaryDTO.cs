@@ -6,6 +6,6 @@
         public bool HasCleanVideo { get; set; }
         public int HighlightCount { get; set; }
         public int SceneCount { get; set; }
-        public DateTime Created { get; set; }
+        public DateTimeOffset Created { get; set; }
     }
 }
