@@ -19,7 +19,14 @@ public class RawFileServiceTests : IDisposable
     {
         if (Directory.Exists(_testDirectory))
         {
-            Directory.Delete(_testDirectory, recursive: true);
+            try
+            {
+                Directory.Delete(_testDirectory, recursive: true);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Failed to delete test directory '{_testDirectory}': {ex}");
+            }
         }
     }
 
