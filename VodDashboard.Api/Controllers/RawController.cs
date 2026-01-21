@@ -16,9 +16,9 @@ namespace VodDashboard.Api.Controllers
         #region Public Methods
 
         [HttpGet]
-        public IActionResult GetRawFiles()
+        public async Task<IActionResult> GetRawFiles()
         {
-            var files = _rawService.GetRawFiles();
+            var files = await _rawService.GetRawFilesAsync();
             return Ok(files);
         }
 
