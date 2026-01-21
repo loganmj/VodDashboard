@@ -213,7 +213,7 @@ public class RawFileServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetRawFiles_OnlySearchesTopLevelDirectory()
+    public void GetRawFiles_WithNestedDirectories_OnlyReturnsTopLevelFiles()
     {
         // Arrange
         var topLevelFile = Path.Combine(_testDirectory, "top-level.mp4");
