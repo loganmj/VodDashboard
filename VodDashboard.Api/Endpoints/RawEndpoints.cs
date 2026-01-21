@@ -24,7 +24,7 @@ namespace VodDashboard.Api.Endpoints
                     {
                         return Results.Problem(
                             detail: ex.Message,
-                            statusCode: StatusCodes.Status400BadRequest,
+                            statusCode: StatusCodes.Status500InternalServerError,
                             title: "Configuration Error");
                     }
                     catch (UnauthorizedAccessException ex)
