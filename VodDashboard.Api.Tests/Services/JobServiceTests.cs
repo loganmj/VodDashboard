@@ -159,7 +159,7 @@ public class JobServiceTests : IDisposable
         var service = new JobService(settings);
 
         // Act
-        var result = service.GetJobs().ToList();
+        var result = service.GetJobsAsync().GetAwaiter().GetResult().ToList();
 
         // Assert
         result.Should().HaveCount(3);
