@@ -2,65 +2,66 @@
 using VodDashboard.Api.Models;
 using VodDashboard.Api.DTO;
 
-namespace VodDashboard.Api.Services;
-
-public class JobService
+namespace VodDashboard.Api.Services
 {
-    private readonly PipelineSettings _settings;
-
-    public JobService(IOptions<PipelineSettings> settings)
+    public class JobService
     {
-        _settings = settings.Value;
-    }
+        private readonly PipelineSettings _settings;
 
-    public async Task<IEnumerable<JobSummaryDTO>> GetJobsAsync()
-    {
-        if (string.IsNullOrWhiteSpace(_settings.OutputDirectory))
-            return Enumerable.Empty<JobSummaryDTO>();
-        var dir = new DirectoryInfo(_settings.OutputDirectory);
-
-        if (!dir.Exists)
+        public JobService(IOptions<PipelineSettings> settings)
         {
-            return Enumerable.Empty<JobSummaryDTO>();
+            _settings = settings.Value;
         }
 
-        var directories = dir.EnumerateDirectories().OrderByDescending(d => d.CreationTimeUtc).ToList();
-        var tasks = directories.Select(d => BuildJobSummaryAsync(d));
-        return await Task.WhenAll(tasks);
-    }
-
-    private async Task<JobSummaryDTO> BuildJobSummaryAsync(DirectoryInfo jobDir)
-    {
-        var cleanPath = Path.Combine(jobDir.FullName, "clean.mp4");
-        var highlightsDir = Path.Combine(jobDir.FullName, "highlights");
-        var scenesDir = Path.Combine(jobDir.FullName, "scenes");
-
-        var highlightCountTask = Task.Run(() =>
+        public async Task<IEnumerable<JobSummaryDTO>> GetJobsAsync()
         {
-            if (Directory.Exists(highlightsDir))
-                return Directory.GetFiles(highlightsDir, "*.mp4").Length;
-            return 0;
-        });
+            if (string.IsNullOrWhiteSpace(_settings.OutputDirectory))
+                return Enumerable.Empty<JobSummaryDTO>();
+            var dir = new DirectoryInfo(_settings.OutputDirectory);
 
-        var sceneCountTask = Task.Run(() =>
+            if (!dir.Exists)
+            {
+                return Enumerable.Empty<JobSummaryDTO>();
+            }
+
+            var directories = dir.EnumerateDirectories().OrderByDescending(d => d.CreationTimeUtc).ToList();
+            var tasks = directories.Select(d => BuildJobSummaryAsync(d));
+            return await Task.WhenAll(tasks);
+        }
+
+        private async Task<JobSummaryDTO> BuildJobSummaryAsync(DirectoryInfo jobDir)
         {
-            if (Directory.Exists(scenesDir))
-                return Directory.GetFiles(scenesDir, "*.csv").Length;
-            return 0;
-        });
+            var cleanPath = Path.Combine(jobDir.FullName, "clean.mp4");
+            var highlightsDir = Path.Combine(jobDir.FullName, "highlights");
+            var scenesDir = Path.Combine(jobDir.FullName, "scenes");
 
-        var hasCleanVideoTask = Task.Run(() => File.Exists(cleanPath));
+            var highlightCountTask = Task.Run(() =>
+            {
+                if (Directory.Exists(highlightsDir))
+                    return Directory.GetFiles(highlightsDir, "*.mp4").Length;
+                return 0;
+            });
 
-        var highlightCount = await highlightCountTask;
-        var sceneCount = await sceneCountTask;
-        var hasCleanVideo = await hasCleanVideoTask;
+            var sceneCountTask = Task.Run(() =>
+            {
+                if (Directory.Exists(scenesDir))
+                    return Directory.GetFiles(scenesDir, "*.csv").Length;
+                return 0;
+            });
 
-        return new JobSummaryDTO(
-            Id: jobDir.Name,
-            HasCleanVideo: hasCleanVideo,
-            HighlightCount: highlightCount,
-            SceneCount: sceneCount,
-            Created: jobDir.CreationTimeUtc
-        );
+            var hasCleanVideoTask = Task.Run(() => File.Exists(cleanPath));
+
+            var highlightCount = await highlightCountTask;
+            var sceneCount = await sceneCountTask;
+            var hasCleanVideo = await hasCleanVideoTask;
+
+            return new JobSummaryDTO(
+                Id: jobDir.Name,
+                HasCleanVideo: hasCleanVideo,
+                HighlightCount: highlightCount,
+                SceneCount: sceneCount,
+                Created: jobDir.CreationTimeUtc
+            );
+        }
     }
 }
