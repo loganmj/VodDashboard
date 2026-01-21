@@ -24,22 +24,41 @@ namespace VodDashboard.Api.Services
         /// </returns>
         public IEnumerable<RawFileDTO> GetRawFiles()
         {
-            var dir = new DirectoryInfo(_settings.InputDirectory);
-
-            if (!dir.Exists) 
+            try
             {
-                return []; 
-            }
+                var dir = new DirectoryInfo(_settings.InputDirectory);
 
-            return dir
-                .EnumerateFiles("*.mp4", SearchOption.TopDirectoryOnly)
-                .OrderByDescending(f => f.CreationTimeUtc)
-                .Select(f => new RawFileDTO
+                if (!dir.Exists)
                 {
-                    FileName = f.Name,
-                    SizeBytes = f.Length,
-                    Created = f.CreationTimeUtc
-                });
+                    return [];
+                }
+
+                return dir
+                    .EnumerateFiles("*.mp4", SearchOption.TopDirectoryOnly)
+                    .OrderByDescending(f => f.CreationTimeUtc)
+                    .Select(f => new RawFileDTO
+                    {
+                        FileName = f.Name,
+                        SizeBytes = f.Length,
+                        Created = f.CreationTimeUtc
+                    })
+                    .ToArray();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // TODO: Log unauthorized access to input directory
+                return [];
+            }
+            catch (IOException)
+            {
+                // TODO: Log IO error while accessing input directory or files
+                return [];
+            }
+            catch (System.Security.SecurityException)
+            {
+                // TODO: Log security error while accessing input directory or files
+                return [];
+            }
         }
 
         #endregion
