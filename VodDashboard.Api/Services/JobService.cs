@@ -55,13 +55,11 @@ public class JobService
         var sceneCount = await sceneCountTask;
         var hasCleanVideo = await hasCleanVideoTask;
 
-        return new JobSummaryDTO
-        {
-            Id = jobDir.Name,
-            HasCleanVideo = hasCleanVideo,
-            HighlightCount = highlightCount,
-            SceneCount = sceneCount,
-            Created = jobDir.CreationTimeUtc
-        };
+        return new JobSummaryDTO(
+            jobDir.Name,
+            hasCleanVideo,
+            highlightCount,
+            sceneCount,
+            jobDir.CreationTimeUtc);
     }
 }
