@@ -15,7 +15,7 @@ namespace VodDashboard.Api.Services
         #region Public Methods
 
         /// <summary>
-        /// Retrieves raw MP4 video files from the configured input directory.
+        /// Retrieves raw MP4 video files from the configured input directory asynchronously.
         /// </summary>
         /// <returns>
         /// A task that represents the asynchronous operation. The task result contains
