@@ -42,13 +42,11 @@ public class JobService
         if (Directory.Exists(scenesDir))
             sceneCount = Directory.GetFiles(scenesDir, "*.csv").Length;
 
-        return new JobSummaryDTO
-        {
-            Id = jobDir.Name,
-            HasCleanVideo = File.Exists(cleanPath),
-            HighlightCount = highlightCount,
-            SceneCount = sceneCount,
-            Created = jobDir.CreationTimeUtc
-        };
+        return new JobSummaryDTO(
+            jobDir.Name,
+            File.Exists(cleanPath),
+            highlightCount,
+            sceneCount,
+            jobDir.CreationTimeUtc);
     }
 }
