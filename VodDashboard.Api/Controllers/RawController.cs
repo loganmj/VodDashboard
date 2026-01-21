@@ -5,14 +5,9 @@ namespace VodDashboard.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class RawController : ControllerBase
+public class RawController(RawFileService rawService) : ControllerBase
 {
-    private readonly RawFileService _rawService;
-
-    public RawController(RawFileService rawService)
-    {
-        _rawService = rawService;
-    }
+    private readonly RawFileService _rawService = rawService;
 
     [HttpGet]
     public IActionResult GetRawFiles()
