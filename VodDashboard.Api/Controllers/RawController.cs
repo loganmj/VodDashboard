@@ -20,8 +20,8 @@ public class RawController(RawFileService rawService) : ControllerBase
         catch (InvalidOperationException ex)
         {
             return Problem(
-                statusCode: StatusCodes.Status400BadRequest,
-                title: "Invalid operation when retrieving raw files",
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Configuration Error",
                 detail: ex.Message);
         }
         catch (UnauthorizedAccessException ex)
