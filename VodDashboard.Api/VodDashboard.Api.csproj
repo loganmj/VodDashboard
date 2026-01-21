@@ -11,11 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-    <Folder Include="Models\" />
-    <Folder Include="DTO\" />
     <Folder Include="Hubs\" />
-    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>
