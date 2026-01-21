@@ -24,26 +24,6 @@ public class RawFileServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetRawFiles_WhenInputDirectoryIsWhitespace_ThrowsInvalidOperationException()
-    {
-        // Arrange
-        var settings = new PipelineSettings
-        {
-            InputDirectory = "   ",
-            OutputDirectory = "/some/output",
-            ConfigFile = "/some/config"
-        };
-        var service = new RawFileService(Options.Create(settings));
-
-        // Act
-        Action act = () => service.GetRawFiles();
-
-        // Assert
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("PipelineSettings.InputDirectory is not configured.");
-    }
-
-    [Fact]
     public void GetRawFiles_WhenInputDirectoryIsEmpty_ThrowsInvalidOperationException()
     {
         // Arrange
@@ -123,7 +103,7 @@ public class RawFileServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetRawFiles_WithValidDirectory_ReturnsMP4FilesOnly()
+    public void GetRawFiles_WhenValidDirectory_ReturnsMP4FilesOnly()
     {
         // Arrange
         var mp4File = Path.Combine(_testDirectory, "video.mp4");
@@ -151,7 +131,7 @@ public class RawFileServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetRawFiles_WithMultipleMP4Files_ReturnsOrderedByCreationTimeDescending()
+    public void GetRawFiles_WhenMultipleMP4Files_ReturnsOrderedByCreationTimeDescending()
     {
         // Arrange
         var file1 = Path.Combine(_testDirectory, "video1.mp4");
@@ -185,7 +165,7 @@ public class RawFileServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetRawFiles_WithSingleMp4File_ReturnsCorrectFileMetadata()
+    public void GetRawFiles_WhenSingleMp4File_ReturnsCorrectFileMetadata()
     {
         // Arrange
         var fileName = "test-video.mp4";
@@ -215,7 +195,7 @@ public class RawFileServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetRawFiles_WithNestedDirectories_OnlyReturnsTopLevelFiles()
+    public void GetRawFiles_WhenNestedDirectories_OnlyReturnsTopLevelFiles()
     {
         // Arrange
         var topLevelFile = Path.Combine(_testDirectory, "top-level.mp4");

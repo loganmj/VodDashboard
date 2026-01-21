@@ -17,18 +17,15 @@ public class RawEndpointsTests : IDisposable
 
     public void Dispose()
     {
-        foreach (var directory in _testDirectories)
+        foreach (var directory in _testDirectories.Where(Directory.Exists))
         {
-            if (Directory.Exists(directory))
+            try
             {
-                try
-                {
-                    Directory.Delete(directory, recursive: true);
-                }
-                catch (Exception ex)
-                {
-                    Console.Error.WriteLine($"Failed to delete test directory '{directory}': {ex}");
-                }
+                Directory.Delete(directory, recursive: true);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Failed to delete test directory '{directory}': {ex}");
             }
         }
     }
@@ -42,7 +39,7 @@ public class RawEndpointsTests : IDisposable
     }
 
     [Fact]
-    public void GetRawFiles_WithValidFiles_ReturnsOkWithFiles()
+    public void GetRawFiles_WhenValidFiles_ReturnsOkWithFiles()
     {
         // Arrange
         var mockLogger = new Mock<ILogger<RawFileService>>();
