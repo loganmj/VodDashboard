@@ -20,7 +20,9 @@ public class JobService
         var dir = new DirectoryInfo(_settings.OutputDirectory);
 
         if (!dir.Exists)
+        {
             return Enumerable.Empty<JobSummaryDTO>();
+        }
 
         var directories = dir.EnumerateDirectories().OrderByDescending(d => d.CreationTimeUtc).ToList();
         var tasks = directories.Select(d => BuildJobSummaryAsync(d));
