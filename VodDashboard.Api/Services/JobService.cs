@@ -49,14 +49,16 @@ public class JobService
 
         var hasCleanVideoTask = Task.Run(() => File.Exists(cleanPath));
 
-        await Task.WhenAll(highlightCountTask, sceneCountTask, hasCleanVideoTask);
+        var highlightCount = await highlightCountTask;
+        var sceneCount = await sceneCountTask;
+        var hasCleanVideo = await hasCleanVideoTask;
 
         return new JobSummaryDTO
         {
             Id = jobDir.Name,
-            HasCleanVideo = hasCleanVideoTask.Result,
-            HighlightCount = highlightCountTask.Result,
-            SceneCount = sceneCountTask.Result,
+            HasCleanVideo = hasCleanVideo,
+            HighlightCount = highlightCount,
+            SceneCount = sceneCount,
             Created = jobDir.CreationTimeUtc
         };
     }
