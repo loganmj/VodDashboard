@@ -1,0 +1,7 @@
+name: "CodeQL config"
+
+# Only analyze C# (repository doesn't contain GitHub Actions workflow files)
+languages:
+  - csharp
+
+disable-default-queries: false
