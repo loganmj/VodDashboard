@@ -47,6 +47,6 @@ public class JobService
             File.Exists(cleanPath),
             highlightCount,
             sceneCount,
-            jobDir.CreationTimeUtc);
+            new DateTimeOffset(jobDir.CreationTimeUtc, TimeSpan.Zero));
     }
 }
