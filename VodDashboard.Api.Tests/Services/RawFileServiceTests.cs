@@ -27,13 +27,18 @@ public class RawFileServiceTests : IDisposable
     public void GetRawFiles_WhenInputDirectoryIsNull_ThrowsInvalidOperationException()
     {
         // Arrange
-        var settings = Options.Create(new PipelineSettings
+        var settings = new PipelineSettings
         {
-            InputDirectory = null!,
+            InputDirectory = string.Empty,
             OutputDirectory = "/some/output",
             ConfigFile = "/some/config"
-        });
-        var service = new RawFileService(settings);
+        };
+        
+        // Use reflection to set InputDirectory to null to test null handling
+        var inputDirectoryProperty = typeof(PipelineSettings).GetProperty(nameof(PipelineSettings.InputDirectory));
+        inputDirectoryProperty!.SetValue(settings, null);
+        
+        var service = new RawFileService(Options.Create(settings));
 
         // Act
         Action act = () => service.GetRawFiles();
@@ -241,4 +246,9 @@ public class RawFileServiceTests : IDisposable
         result.Should().HaveCount(1);
         result[0].FileName.Should().Be("top-level.mp4");
     }
+
+    // Note: Testing UnauthorizedAccessException and IOException wrapping in GetRawFiles
+    // is challenging without a file system abstraction layer. These exceptions are caught
+    // and wrapped in InvalidOperationException in RawFileService.cs lines 42-49.
+    // Integration tests or manual testing should verify this behavior.
 }
