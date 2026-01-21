@@ -26,7 +26,7 @@ namespace VodDashboard.Api.Services
             ArgumentNullException.ThrowIfNull(settings, nameof(settings));
             
             _settings = settings.Value ?? 
-                throw new ArgumentNullException(nameof(settings), "Pipeline settings value cannot be null");
+                throw new ArgumentNullException(nameof(settings) + ".Value", "Pipeline settings value cannot be null");
 
             ValidateInputDirectory();
         }
@@ -47,7 +47,7 @@ namespace VodDashboard.Api.Services
             {
                 throw new ArgumentException(
                     "InputDirectory configuration is required and cannot be empty", 
-                    nameof(_settings.InputDirectory));
+                    "InputDirectory");
             }
 
             try
@@ -67,7 +67,7 @@ namespace VodDashboard.Api.Services
             {
                 throw new ArgumentException(
                     $"The configured input directory path is invalid: {_settings.InputDirectory}", 
-                    nameof(_settings.InputDirectory));
+                    "InputDirectory");
             }
             catch (UnauthorizedAccessException ex)
             {
