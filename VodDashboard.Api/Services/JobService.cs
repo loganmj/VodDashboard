@@ -45,36 +45,47 @@ public class JobService
 
     private async Task<JobSummaryDTO> BuildJobSummaryAsync(DirectoryInfo jobDir)
     {
-        var cleanPath = Path.Combine(jobDir.FullName, "clean.mp4");
-        var highlightsDir = Path.Combine(jobDir.FullName, "highlights");
-        var scenesDir = Path.Combine(jobDir.FullName, "scenes");
-
-        var highlightCountTask = Task.Run(() =>
+        try
         {
-            if (Directory.Exists(highlightsDir))
-                return Directory.GetFiles(highlightsDir, "*.mp4").Length;
-            return 0;
-        });
+            var cleanPath = Path.Combine(jobDir.FullName, "clean.mp4");
+            var highlightsDir = Path.Combine(jobDir.FullName, "highlights");
+            var scenesDir = Path.Combine(jobDir.FullName, "scenes");
 
-        var sceneCountTask = Task.Run(() =>
+            var highlightCountTask = Task.Run(() =>
+            {
+                if (Directory.Exists(highlightsDir))
+                    return Directory.GetFiles(highlightsDir, "*.mp4").Length;
+                return 0;
+            });
+
+            var sceneCountTask = Task.Run(() =>
+            {
+                if (Directory.Exists(scenesDir))
+                    return Directory.GetFiles(scenesDir, "*.csv").Length;
+                return 0;
+            });
+
+            var hasCleanVideoTask = Task.Run(() => File.Exists(cleanPath));
+
+            var highlightCount = await highlightCountTask;
+            var sceneCount = await sceneCountTask;
+            var hasCleanVideo = await hasCleanVideoTask;
+
+            return new JobSummaryDTO(
+                Id: jobDir.Name,
+                HasCleanVideo: hasCleanVideo,
+                HighlightCount: highlightCount,
+                SceneCount: sceneCount,
+                Created: jobDir.CreationTimeUtc
+            );
+        }
+        catch (UnauthorizedAccessException ex)
         {
-            if (Directory.Exists(scenesDir))
-                return Directory.GetFiles(scenesDir, "*.csv").Length;
-            return 0;
-        });
-
-        var hasCleanVideoTask = Task.Run(() => File.Exists(cleanPath));
-
-        var highlightCount = await highlightCountTask;
-        var sceneCount = await sceneCountTask;
-        var hasCleanVideo = await hasCleanVideoTask;
-
-        return new JobSummaryDTO(
-            Id: jobDir.Name,
-            HasCleanVideo: hasCleanVideo,
-            HighlightCount: highlightCount,
-            SceneCount: sceneCount,
-            Created: jobDir.CreationTimeUtc
-        );
+            throw new InvalidOperationException($"Access to job directory '{jobDir.FullName}' is denied.", ex);
+        }
+        catch (IOException ex)
+        {
+            throw new InvalidOperationException($"An I/O error occurred while processing job directory '{jobDir.FullName}'.", ex);
+        }
     }
 }
