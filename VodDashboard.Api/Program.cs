@@ -1,8 +1,14 @@
+using VodDashboard.Api.Models;
+using VodDashboard.Api.Services;
+using VodDashboard.Api.Endpoints;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddSingleton<RawFileService>();
+builder.Services.Configure<PipelineSettings>(builder.Configuration.GetSection("Pipeline"));
 
 var app = builder.Build();
 
@@ -32,6 +38,8 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+
+app.MapRawEndpoints();
 
 app.Run();
 

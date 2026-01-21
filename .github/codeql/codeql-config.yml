@@ -1,0 +1,6 @@
+- name: Initialize CodeQL
+  uses: github/codeql-action/init@v2
+  with:
+    languages: 'actions'
+    queries: +security-extended,security-and-quality
+    config-file: .github/codeql/codeql-config.yml # Adjust path if needed
