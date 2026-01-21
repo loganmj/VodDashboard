@@ -56,10 +56,11 @@ public class JobService
         var hasCleanVideo = await hasCleanVideoTask;
 
         return new JobSummaryDTO(
-            jobDir.Name,
-            hasCleanVideo,
-            highlightCount,
-            sceneCount,
-            jobDir.CreationTimeUtc);
+            Id: jobDir.Name,
+            HasCleanVideo: hasCleanVideo,
+            HighlightCount: highlightCount,
+            SceneCount: sceneCount,
+            Created: jobDir.CreationTimeUtc
+        );
     }
 }
