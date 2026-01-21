@@ -167,10 +167,10 @@ public class RawFileServiceTests : IDisposable
         File.WriteAllText(file2, "content");
         File.WriteAllText(file3, "content");
 
-        DateTime now = DateTime.UtcNow;
-        File.SetCreationTimeUtc(file1, now.AddMinutes(-2)); // Oldest
-        File.SetCreationTimeUtc(file2, now.AddMinutes(-1));
-        File.SetCreationTimeUtc(file3, now); // Most recent
+        DateTime baseTime = DateTime.UtcNow;
+        File.SetCreationTimeUtc(file1, baseTime.AddMinutes(-2)); // Oldest
+        File.SetCreationTimeUtc(file2, baseTime.AddMinutes(-1));
+        File.SetCreationTimeUtc(file3, baseTime); // Most recent
         var settings = Options.Create(new PipelineSettings
         {
             InputDirectory = _testDirectory,
