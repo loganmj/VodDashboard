@@ -31,7 +31,7 @@ public class JobServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetJobs_WhenOutputDirectoryIsEmpty_ReturnsEmptyCollection()
+    public async Task GetJobs_WhenOutputDirectoryIsEmpty_ReturnsEmptyCollection()
     {
         // Arrange
         var settings = Options.Create(new PipelineSettings
@@ -43,14 +43,14 @@ public class JobServiceTests : IDisposable
         var service = new JobService(settings);
 
         // Act
-        var result = service.GetJobs();
+        var result = await service.GetJobsAsync();
 
         // Assert
         result.Should().BeEmpty();
     }
 
     [Fact]
-    public void GetJobs_WhenOutputDirectoryIsWhitespace_ReturnsEmptyCollection()
+    public async Task GetJobs_WhenOutputDirectoryIsWhitespace_ReturnsEmptyCollection()
     {
         // Arrange
         var settings = Options.Create(new PipelineSettings
@@ -62,14 +62,14 @@ public class JobServiceTests : IDisposable
         var service = new JobService(settings);
 
         // Act
-        var result = service.GetJobs();
+        var result = await service.GetJobsAsync();
 
         // Assert
         result.Should().BeEmpty();
     }
 
     [Fact]
-    public void GetJobs_WhenDirectoryDoesNotExist_ReturnsEmptyCollection()
+    public async Task GetJobs_WhenDirectoryDoesNotExist_ReturnsEmptyCollection()
     {
         // Arrange
         var nonExistentDirectory = Path.Combine(Path.GetTempPath(), $"NonExistent_{Guid.NewGuid()}");
@@ -82,14 +82,14 @@ public class JobServiceTests : IDisposable
         var service = new JobService(settings);
 
         // Act
-        var result = service.GetJobs();
+        var result = await service.GetJobsAsync();
 
         // Assert
         result.Should().BeEmpty();
     }
 
     [Fact]
-    public void GetJobs_WhenDirectoryIsEmpty_ReturnsEmptyCollection()
+    public async Task GetJobs_WhenDirectoryIsEmpty_ReturnsEmptyCollection()
     {
         // Arrange
         var settings = Options.Create(new PipelineSettings
@@ -101,14 +101,14 @@ public class JobServiceTests : IDisposable
         var service = new JobService(settings);
 
         // Act
-        var result = service.GetJobs();
+        var result = await service.GetJobsAsync();
 
         // Assert
         result.Should().BeEmpty();
     }
 
     [Fact]
-    public void GetJobs_WhenValidDirectory_ReturnsJobSummaries()
+    public async Task GetJobs_WhenValidDirectory_ReturnsJobSummaries()
     {
         // Arrange
         var jobDir1 = Path.Combine(_testDirectory, "job1");
@@ -125,7 +125,7 @@ public class JobServiceTests : IDisposable
         var service = new JobService(settings);
 
         // Act
-        var result = service.GetJobs().ToList();
+        var result = (await service.GetJobsAsync()).ToList();
 
         // Assert
         result.Should().HaveCount(2);
@@ -134,7 +134,7 @@ public class JobServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetJobs_WhenMultipleJobDirectories_ReturnsOrderedByCreationTimeDescending()
+    public async Task GetJobs_WhenMultipleJobDirectories_ReturnsOrderedByCreationTimeDescending()
     {
         // Arrange
         var jobDir1 = Path.Combine(_testDirectory, "job1");
@@ -159,7 +159,7 @@ public class JobServiceTests : IDisposable
         var service = new JobService(settings);
 
         // Act
-        var result = service.GetJobsAsync().GetAwaiter().GetResult().ToList();
+        var result = (await service.GetJobsAsync()).ToList();
 
         // Assert
         result.Should().HaveCount(3);
@@ -169,7 +169,7 @@ public class JobServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetJobs_WhenJobHasCleanVideo_HasCleanVideoIsTrue()
+    public async Task GetJobs_WhenJobHasCleanVideo_HasCleanVideoIsTrue()
     {
         // Arrange
         var jobDir = Path.Combine(_testDirectory, "job-with-clean");
@@ -186,14 +186,14 @@ public class JobServiceTests : IDisposable
         var service = new JobService(settings);
 
         // Act
-        var result = service.GetJobs().Single();
+        var result = (await service.GetJobsAsync()).Single();
 
         // Assert
         result.HasCleanVideo.Should().BeTrue();
     }
 
     [Fact]
-    public void GetJobs_WhenJobHasNoCleanVideo_HasCleanVideoIsFalse()
+    public async Task GetJobs_WhenJobHasNoCleanVideo_HasCleanVideoIsFalse()
     {
         // Arrange
         var jobDir = Path.Combine(_testDirectory, "job-without-clean");
@@ -208,14 +208,14 @@ public class JobServiceTests : IDisposable
         var service = new JobService(settings);
 
         // Act
-        var result = service.GetJobs().Single();
+        var result = (await service.GetJobsAsync()).Single();
 
         // Assert
         result.HasCleanVideo.Should().BeFalse();
     }
 
     [Fact]
-    public void GetJobs_WhenJobHasHighlights_CountsHighlightsCorrectly()
+    public async Task GetJobs_WhenJobHasHighlights_CountsHighlightsCorrectly()
     {
         // Arrange
         var jobDir = Path.Combine(_testDirectory, "job-with-highlights");
@@ -236,14 +236,14 @@ public class JobServiceTests : IDisposable
         var service = new JobService(settings);
 
         // Act
-        var result = service.GetJobs().Single();
+        var result = (await service.GetJobsAsync()).Single();
 
         // Assert
         result.HighlightCount.Should().Be(3);
     }
 
     [Fact]
-    public void GetJobs_WhenJobHasNoHighlights_HighlightCountIsZero()
+    public async Task GetJobs_WhenJobHasNoHighlights_HighlightCountIsZero()
     {
         // Arrange
         var jobDir = Path.Combine(_testDirectory, "job-without-highlights");
@@ -258,14 +258,14 @@ public class JobServiceTests : IDisposable
         var service = new JobService(settings);
 
         // Act
-        var result = service.GetJobs().Single();
+        var result = (await service.GetJobsAsync()).Single();
 
         // Assert
         result.HighlightCount.Should().Be(0);
     }
 
     [Fact]
-    public void GetJobs_WhenJobHasScenes_CountsScenesCorrectly()
+    public async Task GetJobs_WhenJobHasScenes_CountsScenesCorrectly()
     {
         // Arrange
         var jobDir = Path.Combine(_testDirectory, "job-with-scenes");
@@ -285,14 +285,14 @@ public class JobServiceTests : IDisposable
         var service = new JobService(settings);
 
         // Act
-        var result = service.GetJobs().Single();
+        var result = (await service.GetJobsAsync()).Single();
 
         // Assert
         result.SceneCount.Should().Be(2);
     }
 
     [Fact]
-    public void GetJobs_WhenJobHasNoScenes_SceneCountIsZero()
+    public async Task GetJobs_WhenJobHasNoScenes_SceneCountIsZero()
     {
         // Arrange
         var jobDir = Path.Combine(_testDirectory, "job-without-scenes");
@@ -307,14 +307,14 @@ public class JobServiceTests : IDisposable
         var service = new JobService(settings);
 
         // Act
-        var result = service.GetJobs().Single();
+        var result = (await service.GetJobsAsync()).Single();
 
         // Assert
         result.SceneCount.Should().Be(0);
     }
 
     [Fact]
-    public void GetJobs_WhenJobHasAllComponents_ReturnsCorrectJobSummary()
+    public async Task GetJobs_WhenJobHasAllComponents_ReturnsCorrectJobSummary()
     {
         // Arrange
         var jobId = "complete-job";
@@ -347,7 +347,7 @@ public class JobServiceTests : IDisposable
         var service = new JobService(settings);
 
         // Act
-        var result = service.GetJobs().Single();
+        var result = (await service.GetJobsAsync()).Single();
 
         // Assert
         result.Id.Should().Be(jobId);
@@ -360,7 +360,7 @@ public class JobServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetJobs_WhenJobDirectoryHasFiles_OnlyCountsInSubdirectories()
+    public async Task GetJobs_WhenJobDirectoryHasFiles_OnlyCountsInSubdirectories()
     {
         // Arrange
         var jobDir = Path.Combine(_testDirectory, "job-with-files");
@@ -379,7 +379,7 @@ public class JobServiceTests : IDisposable
         var service = new JobService(settings);
 
         // Act
-        var result = service.GetJobs().Single();
+        var result = (await service.GetJobsAsync()).Single();
 
         // Assert
         result.HighlightCount.Should().Be(0);
