@@ -17,18 +17,11 @@ public class JobController(JobService jobService) : ControllerBase
             var jobs = await _jobService.GetJobsAsync();
             return Ok(jobs);
         }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Problem(
-                statusCode: StatusCodes.Status403Forbidden,
-                title: "Access to job storage was denied.",
-                detail: ex.Message);
-        }
-        catch (IOException ex)
+        catch (InvalidOperationException ex)
         {
             return Problem(
                 statusCode: StatusCodes.Status500InternalServerError,
-                title: "An error occurred while accessing job storage.",
+                title: "Configuration Error",
                 detail: ex.Message);
         }
     }

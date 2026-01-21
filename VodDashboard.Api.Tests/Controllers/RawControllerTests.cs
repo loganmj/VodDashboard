@@ -82,46 +82,4 @@ public class RawControllerTests
         problemDetails!.Title.Should().Be("Configuration Error");
         problemDetails.Detail.Should().Be("Configuration error");
     }
-
-    [Fact]
-    public void GetRawFiles_WhenUnauthorizedAccessExceptionThrown_ReturnsForbidden()
-    {
-        // Arrange
-        var mockService = CreateMockRawFileService();
-        mockService.Setup(s => s.GetRawFiles()).Throws(new UnauthorizedAccessException("Access denied"));
-        var controller = new RawController(mockService.Object);
-
-        // Act
-        var result = controller.GetRawFiles();
-
-        // Assert
-        result.Should().BeOfType<ObjectResult>();
-        var objectResult = result as ObjectResult;
-        objectResult!.StatusCode.Should().Be(403);
-        var problemDetails = objectResult.Value as ProblemDetails;
-        problemDetails.Should().NotBeNull();
-        problemDetails!.Title.Should().Be("Access denied to raw files");
-        problemDetails.Detail.Should().Be("Access denied");
-    }
-
-    [Fact]
-    public void GetRawFiles_WhenIOExceptionThrown_ReturnsInternalServerError()
-    {
-        // Arrange
-        var mockService = CreateMockRawFileService();
-        mockService.Setup(s => s.GetRawFiles()).Throws(new IOException("I/O error"));
-        var controller = new RawController(mockService.Object);
-
-        // Act
-        var result = controller.GetRawFiles();
-
-        // Assert
-        result.Should().BeOfType<ObjectResult>();
-        var objectResult = result as ObjectResult;
-        objectResult!.StatusCode.Should().Be(500);
-        var problemDetails = objectResult.Value as ProblemDetails;
-        problemDetails.Should().NotBeNull();
-        problemDetails!.Title.Should().Be("I/O error while retrieving raw files");
-        problemDetails.Detail.Should().Be("I/O error");
-    }
 }

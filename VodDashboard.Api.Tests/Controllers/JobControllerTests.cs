@@ -63,32 +63,11 @@ public class JobControllerTests
     }
 
     [Fact]
-    public async Task GetJobs_WhenUnauthorizedAccessExceptionThrown_ReturnsForbidden()
+    public async Task GetJobs_WhenInvalidOperationExceptionThrown_ReturnsInternalServerError()
     {
         // Arrange
         var mockService = CreateMockJobService();
-        mockService.Setup(s => s.GetJobsAsync()).ThrowsAsync(new UnauthorizedAccessException("Access denied"));
-        var controller = new JobController(mockService.Object);
-
-        // Act
-        var result = await controller.GetJobs();
-
-        // Assert
-        result.Should().BeOfType<ObjectResult>();
-        var objectResult = result as ObjectResult;
-        objectResult!.StatusCode.Should().Be(403);
-        var problemDetails = objectResult.Value as ProblemDetails;
-        problemDetails.Should().NotBeNull();
-        problemDetails!.Title.Should().Be("Access to job storage was denied.");
-        problemDetails.Detail.Should().Be("Access denied");
-    }
-
-    [Fact]
-    public async Task GetJobs_WhenIOExceptionThrown_ReturnsInternalServerError()
-    {
-        // Arrange
-        var mockService = CreateMockJobService();
-        mockService.Setup(s => s.GetJobsAsync()).ThrowsAsync(new IOException("I/O error"));
+        mockService.Setup(s => s.GetJobsAsync()).ThrowsAsync(new InvalidOperationException("Configuration error"));
         var controller = new JobController(mockService.Object);
 
         // Act
@@ -100,7 +79,7 @@ public class JobControllerTests
         objectResult!.StatusCode.Should().Be(500);
         var problemDetails = objectResult.Value as ProblemDetails;
         problemDetails.Should().NotBeNull();
-        problemDetails!.Title.Should().Be("An error occurred while accessing job storage.");
-        problemDetails.Detail.Should().Be("I/O error");
+        problemDetails!.Title.Should().Be("Configuration Error");
+        problemDetails.Detail.Should().Be("Configuration error");
     }
 }
