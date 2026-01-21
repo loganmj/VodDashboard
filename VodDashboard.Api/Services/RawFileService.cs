@@ -36,7 +36,7 @@ namespace VodDashboard.Api.Services
                     .Select(f => new RawFileDTO(
                         f.Name,
                         f.Length,
-                        f.CreationTimeUtc
+                        new DateTimeOffset(f.CreationTimeUtc)
                     ))
                     .ToList();
             }, cancellationToken);
