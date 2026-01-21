@@ -15,6 +15,8 @@ public class JobService
 
     public IEnumerable<JobSummaryDTO> GetJobs()
     {
+        if (string.IsNullOrWhiteSpace(_settings.OutputDirectory))
+            return Enumerable.Empty<JobSummaryDTO>();
         var dir = new DirectoryInfo(_settings.OutputDirectory);
 
         if (!dir.Exists)
