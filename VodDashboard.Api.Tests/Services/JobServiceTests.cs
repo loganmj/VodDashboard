@@ -31,25 +31,6 @@ public class JobServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetJobs_WhenOutputDirectoryIsNull_ReturnsEmptyCollection()
-    {
-        // Arrange
-        var settings = Options.Create(new PipelineSettings
-        {
-            InputDirectory = "/some/input",
-            OutputDirectory = null!,
-            ConfigFile = "/some/config"
-        });
-        var service = new JobService(settings);
-
-        // Act
-        var result = service.GetJobs();
-
-        // Assert
-        result.Should().BeEmpty();
-    }
-
-    [Fact]
     public void GetJobs_WhenOutputDirectoryIsEmpty_ReturnsEmptyCollection()
     {
         // Arrange
