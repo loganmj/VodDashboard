@@ -13,7 +13,7 @@ namespace VodDashboard.Api.Endpoints
 
             group.MapGet(
                 string.Empty,
-                (RawFileService rawService) =>
+                (RawFileService rawService, ILogger<RawFileService> logger) =>
                 {
                     try
                     {
@@ -22,6 +22,7 @@ namespace VodDashboard.Api.Endpoints
                     }
                     catch (InvalidOperationException ex)
                     {
+                        logger.LogError(ex, "Configuration error: {Message}", ex.Message);
                         return Results.Problem(
                             detail: ex.Message,
                             statusCode: StatusCodes.Status500InternalServerError,
@@ -29,20 +30,23 @@ namespace VodDashboard.Api.Endpoints
                     }
                     catch (UnauthorizedAccessException ex)
                     {
+                        logger.LogError(ex, "Access denied while retrieving raw files");
                         return Results.Problem(
-                            detail: ex.Message,
+                            detail: "Access to the file system was denied.",
                             statusCode: StatusCodes.Status500InternalServerError,
                             title: "Access Denied");
                     }
                     catch (IOException ex)
                     {
+                        logger.LogError(ex, "I/O error while retrieving raw files");
                         return Results.Problem(
-                            detail: ex.Message,
+                            detail: "A file system error occurred while retrieving raw files.",
                             statusCode: StatusCodes.Status500InternalServerError,
                             title: "File System Error");
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        logger.LogError(ex, "Unexpected error while retrieving raw files");
                         return Results.Problem(
                             detail: "An unexpected error occurred while retrieving raw files.",
                             statusCode: StatusCodes.Status500InternalServerError,
