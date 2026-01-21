@@ -6,5 +6,4 @@
         public required string OutputDirectory { get; set; }
         public required string ConfigFile { get; set; }
     }
-
 }
