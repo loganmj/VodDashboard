@@ -3,7 +3,7 @@ using VodDashboard.Api.Services;
 namespace VodDashboard.Api.Endpoints
 {
     /// <summary>
-    /// Retrieves raw video file data
+    /// Retrieves raw video files
     /// </summary>
     public static class RawEndpoints
     {
