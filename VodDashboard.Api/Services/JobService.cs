@@ -60,7 +60,6 @@ public class JobService
             hasCleanVideo,
             highlightCount,
             sceneCount,
-            jobDir.CreationTimeUtc
-        );
+            jobDir.CreationTimeUtc);
     }
 }
