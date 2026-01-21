@@ -5,7 +5,7 @@ namespace VodDashboard.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class JobsController(JobService jobService) : ControllerBase
+public class JobController(JobService jobService) : ControllerBase
 {
     private readonly JobService _jobService = jobService;
 
