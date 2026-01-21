@@ -25,9 +25,9 @@ public class RawEndpointsTests : IDisposable
                 {
                     Directory.Delete(directory, recursive: true);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Ignore cleanup errors
+                    Console.Error.WriteLine($"Failed to delete test directory '{directory}': {ex}");
                 }
             }
         }
