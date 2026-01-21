@@ -54,9 +54,9 @@ public class JobService
         return new JobSummaryDTO
         {
             Id = jobDir.Name,
-            HasCleanVideo = await hasCleanVideoTask,
-            HighlightCount = await highlightCountTask,
-            SceneCount = await sceneCountTask,
+            HasCleanVideo = hasCleanVideoTask.Result,
+            HighlightCount = highlightCountTask.Result,
+            SceneCount = sceneCountTask.Result,
             Created = jobDir.CreationTimeUtc
         };
     }
