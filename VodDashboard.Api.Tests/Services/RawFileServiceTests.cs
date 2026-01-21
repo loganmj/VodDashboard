@@ -183,7 +183,7 @@ public class RawFileServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetRawFiles_ReturnsCorrectFileMetadata()
+    public void GetRawFiles_WithSingleMp4File_ReturnsCorrectFileMetadata()
     {
         // Arrange
         var fileName = "test-video.mp4";
