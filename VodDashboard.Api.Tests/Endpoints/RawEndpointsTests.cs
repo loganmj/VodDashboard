@@ -84,7 +84,6 @@ public class RawEndpointsTests : IDisposable
         IResult result = RawEndpoints.GetRawFilesHandler(service, mockLogger.Object);
 
         // Assert
-        result.Should().BeOfType<ProblemHttpResult>();
         var problemResult = result.Should().BeOfType<ProblemHttpResult>().Subject;
         problemResult.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
         problemResult.ProblemDetails.Title.Should().Be("Configuration Error");
