@@ -18,7 +18,8 @@ namespace VodDashboard.Api.Endpoints
                     var files = rawService.GetRawFiles();
                     return Results.Ok(files);
                 })
-            .WithName("GetRawFiles");
+            .WithName("GetRawFiles")
+            .WithOpenApi();
 
             return endpoints;
         }
