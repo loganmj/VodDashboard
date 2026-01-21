@@ -61,7 +61,6 @@ public class RawEndpointsTests : IDisposable
         IResult result = RawEndpoints.GetRawFilesHandler(service, mockLogger.Object);
 
         // Assert
-        result.Should().BeOfType<Ok<IEnumerable<RawFileDTO>>>();
         var okResult = result.Should().BeOfType<Ok<IEnumerable<RawFileDTO>>>().Subject;
         okResult.Value.Should().HaveCount(1);
     }
