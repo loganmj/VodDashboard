@@ -15,14 +15,15 @@ namespace VodDashboard.Api.Services
         #region Public Methods
 
         /// <summary>
-        /// Retrieves raw MP4 video files from the configured input directory.
+        /// Retrieves raw MP4 video files from the configured input directory asynchronously.
         /// </summary>
         /// <returns>
-        /// An enumerable sequence of <see cref="RawFileDTO"/> instances representing
+        /// A task that represents the asynchronous operation. The task result contains
+        /// an enumerable sequence of <see cref="RawFileDTO"/> instances representing
         /// the MP4 files found in the input directory, ordered by creation time in
         /// descending order. Returns an empty sequence if the directory does not exist.
         /// </returns>
-        public IEnumerable<RawFileDTO> GetRawFiles()
+        public async Task<IEnumerable<RawFileDTO>> GetRawFilesAsync()
         {
             var dir = new DirectoryInfo(_settings.InputDirectory);
 
@@ -31,7 +32,8 @@ namespace VodDashboard.Api.Services
                 return []; 
             }
 
-            return dir
+            // Execute file system operations asynchronously to avoid blocking
+            return await Task.Run(() => dir
                 .EnumerateFiles("*.mp4", SearchOption.TopDirectoryOnly)
                 .OrderByDescending(f => f.CreationTimeUtc)
                 .Select(f => new RawFileDTO
@@ -39,7 +41,8 @@ namespace VodDashboard.Api.Services
                     FileName = f.Name,
                     SizeBytes = f.Length,
                     Created = f.CreationTimeUtc
-                });
+                })
+                .ToList());
         }
 
         #endregion
