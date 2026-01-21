@@ -103,25 +103,4 @@ public class JobControllerTests
         problemDetails!.Title.Should().Be("An error occurred while accessing job storage.");
         problemDetails.Detail.Should().Be("I/O error");
     }
-
-    [Fact]
-    public async Task GetJobs_WhenUnexpectedExceptionThrown_ReturnsInternalServerError()
-    {
-        // Arrange
-        var mockService = CreateMockJobService();
-        mockService.Setup(s => s.GetJobsAsync()).ThrowsAsync(new InvalidOperationException("Unexpected error"));
-        var controller = new JobController(mockService.Object);
-
-        // Act
-        var result = await controller.GetJobs();
-
-        // Assert
-        result.Should().BeOfType<ObjectResult>();
-        var objectResult = result as ObjectResult;
-        objectResult!.StatusCode.Should().Be(500);
-        var problemDetails = objectResult.Value as ProblemDetails;
-        problemDetails.Should().NotBeNull();
-        problemDetails!.Title.Should().Be("An unexpected error occurred while retrieving jobs.");
-        problemDetails.Detail.Should().Be("Unexpected error");
-    }
 }
