@@ -19,7 +19,7 @@ public class RawControllerTests
             OutputDirectory = "/test/output",
             ConfigFile = "/test/config"
         });
-        return new Mock<RawFileService>(settings) { CallBase = false };
+        return new Mock<RawFileService>(settings) { CallBase = true };
     }
 
     [Fact]

@@ -35,11 +35,11 @@ public class JobService
         }
         catch (UnauthorizedAccessException ex)
         {
-            throw new InvalidOperationException($"Access to the output directory '{_settings.OutputDirectory}' is denied.", ex);
+            throw new InvalidOperationException("Access to the configured output directory is denied.", ex);
         }
         catch (IOException ex)
         {
-            throw new InvalidOperationException($"An I/O error occurred while enumerating directories in the output directory '{_settings.OutputDirectory}'.", ex);
+            throw new InvalidOperationException("An I/O error occurred while enumerating directories in the configured output directory.", ex);
         }
     }
 
@@ -81,11 +81,11 @@ public class JobService
         }
         catch (UnauthorizedAccessException ex)
         {
-            throw new InvalidOperationException($"Access to job directory '{jobDir.FullName}' is denied.", ex);
+            throw new InvalidOperationException("Access to a job directory is denied.", ex);
         }
         catch (IOException ex)
         {
-            throw new InvalidOperationException($"An I/O error occurred while processing job directory '{jobDir.FullName}'.", ex);
+            throw new InvalidOperationException("An I/O error occurred while processing a job directory.", ex);
         }
     }
 }

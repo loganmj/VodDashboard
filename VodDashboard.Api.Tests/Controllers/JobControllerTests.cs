@@ -19,7 +19,7 @@ public class JobControllerTests
             OutputDirectory = "/test/output",
             ConfigFile = "/test/config"
         });
-        return new Mock<JobService>(settings) { CallBase = false };
+        return new Mock<JobService>(settings) { CallBase = true };
     }
 
     [Fact]

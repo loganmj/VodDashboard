@@ -41,11 +41,11 @@ public class RawFileService(IOptions<PipelineSettings> settings)
         }
         catch (UnauthorizedAccessException ex)
         {
-            throw new InvalidOperationException($"Access to the input directory '{_settings.InputDirectory}' is denied.", ex);
+            throw new InvalidOperationException("Access to the configured input directory is denied.", ex);
         }
         catch (IOException ex)
         {
-            throw new InvalidOperationException($"An I/O error occurred while enumerating files in the input directory '{_settings.InputDirectory}'.", ex);
+            throw new InvalidOperationException("An I/O error occurred while enumerating files in the configured input directory.", ex);
         }
     }
 
