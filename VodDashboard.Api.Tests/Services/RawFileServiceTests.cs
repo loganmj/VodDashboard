@@ -159,11 +159,13 @@ public class RawFileServiceTests : IDisposable
         var file3 = Path.Combine(_testDirectory, "video3.mp4");
 
         File.WriteAllText(file1, "content");
-        Thread.Sleep(10); // Ensure different creation times
         File.WriteAllText(file2, "content");
-        Thread.Sleep(10);
         File.WriteAllText(file3, "content");
 
+        DateTime now = DateTime.UtcNow;
+        File.SetCreationTimeUtc(file1, now.AddMinutes(-2)); // Oldest
+        File.SetCreationTimeUtc(file2, now.AddMinutes(-1));
+        File.SetCreationTimeUtc(file3, now); // Most recent
         var settings = Options.Create(new PipelineSettings
         {
             InputDirectory = _testDirectory,
