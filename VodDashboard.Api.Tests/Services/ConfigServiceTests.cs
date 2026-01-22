@@ -37,8 +37,6 @@ public class ConfigServiceTests : IDisposable
         // Arrange
         var settings = Options.Create(new PipelineSettings
         {
-            InputDirectory = "/some/input",
-            OutputDirectory = "/some/output",
             ConfigFile = null!
         });
         var service = new ConfigService(settings);
@@ -57,8 +55,6 @@ public class ConfigServiceTests : IDisposable
         // Arrange
         var settings = Options.Create(new PipelineSettings
         {
-            InputDirectory = "/some/input",
-            OutputDirectory = "/some/output",
             ConfigFile = ""
         });
         var service = new ConfigService(settings);
@@ -77,8 +73,6 @@ public class ConfigServiceTests : IDisposable
         // Arrange
         var settings = Options.Create(new PipelineSettings
         {
-            InputDirectory = "/some/input",
-            OutputDirectory = "/some/output",
             ConfigFile = "   "
         });
         var service = new ConfigService(settings);
@@ -98,8 +92,6 @@ public class ConfigServiceTests : IDisposable
         var nonExistentFile = Path.Combine(_testDirectory, "nonexistent.json");
         var settings = Options.Create(new PipelineSettings
         {
-            InputDirectory = "/some/input",
-            OutputDirectory = "/some/output",
             ConfigFile = nonExistentFile
         });
         var service = new ConfigService(settings);
@@ -128,8 +120,6 @@ public class ConfigServiceTests : IDisposable
 
         var settings = Options.Create(new PipelineSettings
         {
-            InputDirectory = "/some/input",
-            OutputDirectory = "/some/output",
             ConfigFile = configFile
         });
         var service = new ConfigService(settings);
@@ -159,8 +149,6 @@ public class ConfigServiceTests : IDisposable
 
         var settings = Options.Create(new PipelineSettings
         {
-            InputDirectory = "/some/input",
-            OutputDirectory = "/some/output",
             ConfigFile = configFile
         });
         var service = new ConfigService(settings);
@@ -184,8 +172,6 @@ public class ConfigServiceTests : IDisposable
         // Arrange
         var settings = Options.Create(new PipelineSettings
         {
-            InputDirectory = "/some/input",
-            OutputDirectory = "/some/output",
             ConfigFile = null!
         });
         var service = new ConfigService(settings);
@@ -209,8 +195,6 @@ public class ConfigServiceTests : IDisposable
         // Arrange
         var settings = Options.Create(new PipelineSettings
         {
-            InputDirectory = "/some/input",
-            OutputDirectory = "/some/output",
             ConfigFile = ""
         });
         var service = new ConfigService(settings);
@@ -234,8 +218,6 @@ public class ConfigServiceTests : IDisposable
         // Arrange
         var settings = Options.Create(new PipelineSettings
         {
-            InputDirectory = "/some/input",
-            OutputDirectory = "/some/output",
             ConfigFile = "   "
         });
         var service = new ConfigService(settings);
@@ -260,8 +242,6 @@ public class ConfigServiceTests : IDisposable
         var configFile = Path.Combine(_testDirectory, "config.json");
         var settings = Options.Create(new PipelineSettings
         {
-            InputDirectory = "/some/input",
-            OutputDirectory = "/some/output",
             ConfigFile = configFile
         });
         var service = new ConfigService(settings);
@@ -298,8 +278,6 @@ public class ConfigServiceTests : IDisposable
         var configFile = Path.Combine(_testDirectory, "config.json");
         var settings = Options.Create(new PipelineSettings
         {
-            InputDirectory = "/some/input",
-            OutputDirectory = "/some/output",
             ConfigFile = configFile
         });
         var service = new ConfigService(settings);
@@ -336,8 +314,6 @@ public class ConfigServiceTests : IDisposable
         var configFile = Path.Combine(nonExistentDirectory, "config.json");
         var settings = Options.Create(new PipelineSettings
         {
-            InputDirectory = "/some/input",
-            OutputDirectory = "/some/output",
             ConfigFile = configFile
         });
         var service = new ConfigService(settings);
@@ -362,8 +338,6 @@ public class ConfigServiceTests : IDisposable
         var tempFile = configFile + ".tmp";
         var settings = Options.Create(new PipelineSettings
         {
-            InputDirectory = "/some/input",
-            OutputDirectory = "/some/output",
             ConfigFile = configFile
         });
         var service = new ConfigService(settings);
@@ -389,8 +363,6 @@ public class ConfigServiceTests : IDisposable
         var configFile = Path.Combine(_testDirectory, "config.json");
         var settings = Options.Create(new PipelineSettings
         {
-            InputDirectory = "/some/input",
-            OutputDirectory = "/some/output",
             ConfigFile = configFile
         });
         var service = new ConfigService(settings);
@@ -427,8 +399,6 @@ public class ConfigServiceTests : IDisposable
 
         var settings = Options.Create(new PipelineSettings
         {
-            InputDirectory = "/some/input",
-            OutputDirectory = "/some/output",
             ConfigFile = configFile
         });
         var service = new ConfigService(settings);
@@ -439,5 +409,130 @@ public class ConfigServiceTests : IDisposable
         // Assert
         act.Should().Throw<InvalidOperationException>()
             .WithMessage($"Failed to deserialize configuration file at '{configFile}'.");
+    }
+
+    [Fact]
+    public void GetCachedConfig_WhenConfigFileExists_ReturnsConfig()
+    {
+        // Arrange
+        var configFile = Path.Combine(_testDirectory, "config.json");
+        var configJson = @"{
+  ""InputDirectory"": ""/input"",
+  ""OutputDirectory"": ""/output"",
+  ""ArchiveDirectory"": ""/archive"",
+  ""EnableHighlights"": true,
+  ""EnableScenes"": false,
+  ""SilenceThreshold"": -30
+}";
+        File.WriteAllText(configFile, configJson);
+
+        var settings = Options.Create(new PipelineSettings
+        {
+            ConfigFile = configFile
+        });
+        var service = new ConfigService(settings);
+
+        // Act
+        var result = service.GetCachedConfig();
+
+        // Assert
+        result.Should().NotBeNull();
+        result.InputDirectory.Should().Be("/input");
+        result.OutputDirectory.Should().Be("/output");
+        result.ArchiveDirectory.Should().Be("/archive");
+        result.EnableHighlights.Should().BeTrue();
+        result.EnableScenes.Should().BeFalse();
+        result.SilenceThreshold.Should().Be(-30);
+    }
+
+    [Fact]
+    public void GetCachedConfig_WhenConfigFileDoesNotExist_ReturnsDefaultConfig()
+    {
+        // Arrange
+        var nonExistentFile = Path.Combine(_testDirectory, "nonexistent.json");
+        var settings = Options.Create(new PipelineSettings
+        {
+            ConfigFile = nonExistentFile
+        });
+        var service = new ConfigService(settings);
+
+        // Act
+        var result = service.GetCachedConfig();
+
+        // Assert
+        result.Should().NotBeNull();
+        result.InputDirectory.Should().Be("./Input");
+        result.OutputDirectory.Should().Be("./Output");
+        result.ArchiveDirectory.Should().Be("./Input/Archive");
+        result.EnableHighlights.Should().BeTrue();
+        result.EnableScenes.Should().BeTrue();
+        result.SilenceThreshold.Should().Be(-40);
+    }
+
+    [Fact]
+    public void GetCachedConfig_WhenCalledMultipleTimes_ReturnsCachedInstance()
+    {
+        // Arrange
+        var configFile = Path.Combine(_testDirectory, "config.json");
+        var configJson = @"{
+  ""InputDirectory"": ""/input"",
+  ""OutputDirectory"": ""/output""
+}";
+        File.WriteAllText(configFile, configJson);
+
+        var settings = Options.Create(new PipelineSettings
+        {
+            ConfigFile = configFile
+        });
+        var service = new ConfigService(settings);
+
+        // Act
+        var result1 = service.GetCachedConfig();
+        var result2 = service.GetCachedConfig();
+
+        // Assert
+        result1.Should().BeSameAs(result2);
+    }
+
+    [Fact]
+    public void GetCachedConfig_AfterSaveConfig_CacheRemainsUnchanged()
+    {
+        // Arrange
+        var configFile = Path.Combine(_testDirectory, "config.json");
+        var initialConfigJson = @"{
+  ""InputDirectory"": ""/old/input"",
+  ""OutputDirectory"": ""/old/output""
+}";
+        File.WriteAllText(configFile, initialConfigJson);
+
+        var settings = Options.Create(new PipelineSettings
+        {
+            ConfigFile = configFile
+        });
+        var service = new ConfigService(settings);
+
+        // Get initial config
+        var initialConfig = service.GetCachedConfig();
+
+        // Act - Save new config
+        var newConfig = new PipelineConfig
+        {
+            InputDirectory = "/new/input",
+            OutputDirectory = "/new/output",
+            ArchiveDirectory = "/new/archive"
+        };
+        service.SaveConfig(newConfig);
+
+        var result = service.GetCachedConfig();
+
+        // Assert - Cache remains unchanged until restart
+        result.Should().BeSameAs(initialConfig);
+        result.InputDirectory.Should().Be("/old/input");
+        result.OutputDirectory.Should().Be("/old/output");
+
+        // Verify file was updated even though cache wasn't
+        var savedConfig = service.GetConfig();
+        savedConfig!.InputDirectory.Should().Be("/new/input");
+        savedConfig.OutputDirectory.Should().Be("/new/output");
     }
 }

@@ -1,4 +1,6 @@
 using FluentAssertions;
+using Moq;
+using VodDashboard.Api.DTO;
 using Microsoft.Extensions.Options;
 using VodDashboard.Api.Models;
 using VodDashboard.Api.Services;
@@ -30,57 +32,63 @@ public class StatusServiceTests : IDisposable
         }
     }
 
+    private static Mock<ConfigService> CreateMockConfigService(PipelineConfig config)
+    {
+        var mockOptions = new Mock<IOptions<PipelineSettings>>();
+        mockOptions.Setup(o => o.Value).Returns(new PipelineSettings { ConfigFile = "/dummy/config.json" });
+        var mockConfigService = new Mock<ConfigService>(mockOptions.Object);
+        mockConfigService.Setup(c => c.GetCachedConfig()).Returns(config);
+        return mockConfigService;
+    }
+
     [Fact]
     public void GetStatus_WhenOutputDirectoryIsEmpty_ThrowsInvalidOperationException()
     {
         // Arrange
-        var settings = Options.Create(new PipelineSettings
+        var mockConfigService = CreateMockConfigService(new PipelineConfig
         {
             InputDirectory = "/some/input",
-            OutputDirectory = string.Empty,
-            ConfigFile = "/some/config"
+            OutputDirectory = string.Empty
         });
-        var service = new StatusService(settings);
+        var service = new StatusService(mockConfigService.Object);
 
         // Act
         Action act = () => service.GetStatus();
 
         // Assert
         act.Should().Throw<InvalidOperationException>()
-            .WithMessage("PipelineSettings.OutputDirectory is not configured.");
+            .WithMessage("PipelineConfig.OutputDirectory is not configured.");
     }
 
     [Fact]
     public void GetStatus_WhenOutputDirectoryIsWhitespace_ThrowsInvalidOperationException()
     {
         // Arrange
-        var settings = Options.Create(new PipelineSettings
+        var mockConfigService = CreateMockConfigService(new PipelineConfig
         {
             InputDirectory = "/some/input",
-            OutputDirectory = "   ",
-            ConfigFile = "/some/config"
+            OutputDirectory = "   "
         });
-        var service = new StatusService(settings);
+        var service = new StatusService(mockConfigService.Object);
 
         // Act
         Action act = () => service.GetStatus();
 
         // Assert
         act.Should().Throw<InvalidOperationException>()
-            .WithMessage("PipelineSettings.OutputDirectory is not configured.");
+            .WithMessage("PipelineConfig.OutputDirectory is not configured.");
     }
 
     [Fact]
     public void GetStatus_WhenLogFileDoesNotExist_ReturnsNotRunning()
     {
         // Arrange
-        var settings = Options.Create(new PipelineSettings
+        var mockConfigService = CreateMockConfigService(new PipelineConfig
         {
             InputDirectory = "/some/input",
-            OutputDirectory = _testDirectory,
-            ConfigFile = "/some/config"
+            OutputDirectory = _testDirectory
         });
-        var service = new StatusService(settings);
+        var service = new StatusService(mockConfigService.Object);
 
         // Act
         var result = service.GetStatus();
@@ -100,13 +108,12 @@ public class StatusServiceTests : IDisposable
         var logPath = Path.Combine(_testDirectory, "pipeline.log");
         File.WriteAllText(logPath, string.Empty);
 
-        var settings = Options.Create(new PipelineSettings
+        var mockConfigService = CreateMockConfigService(new PipelineConfig
         {
             InputDirectory = "/some/input",
-            OutputDirectory = _testDirectory,
-            ConfigFile = "/some/config"
+            OutputDirectory = _testDirectory
         });
-        var service = new StatusService(settings);
+        var service = new StatusService(mockConfigService.Object);
 
         // Act
         var result = service.GetStatus();
@@ -126,13 +133,12 @@ public class StatusServiceTests : IDisposable
         var logPath = Path.Combine(_testDirectory, "pipeline.log");
         File.WriteAllText(logPath, "   \n\n  \n");
 
-        var settings = Options.Create(new PipelineSettings
+        var mockConfigService = CreateMockConfigService(new PipelineConfig
         {
             InputDirectory = "/some/input",
-            OutputDirectory = _testDirectory,
-            ConfigFile = "/some/config"
+            OutputDirectory = _testDirectory
         });
-        var service = new StatusService(settings);
+        var service = new StatusService(mockConfigService.Object);
 
         // Act
         var result = service.GetStatus();
@@ -152,13 +158,12 @@ public class StatusServiceTests : IDisposable
         var logPath = Path.Combine(_testDirectory, "pipeline.log");
         File.WriteAllText(logPath, "[2026-01-21 14:33:12] Processing file: myvideo.mp4");
 
-        var settings = Options.Create(new PipelineSettings
+        var mockConfigService = CreateMockConfigService(new PipelineConfig
         {
             InputDirectory = "/some/input",
-            OutputDirectory = _testDirectory,
-            ConfigFile = "/some/config"
+            OutputDirectory = _testDirectory
         });
-        var service = new StatusService(settings);
+        var service = new StatusService(mockConfigService.Object);
 
         // Act
         var result = service.GetStatus();
@@ -179,13 +184,12 @@ public class StatusServiceTests : IDisposable
         var logPath = Path.Combine(_testDirectory, "pipeline.log");
         File.WriteAllText(logPath, "[2026-01-21 14:33:15] Stage: silence removal");
 
-        var settings = Options.Create(new PipelineSettings
+        var mockConfigService = CreateMockConfigService(new PipelineConfig
         {
             InputDirectory = "/some/input",
-            OutputDirectory = _testDirectory,
-            ConfigFile = "/some/config"
+            OutputDirectory = _testDirectory
         });
-        var service = new StatusService(settings);
+        var service = new StatusService(mockConfigService.Object);
 
         // Act
         var result = service.GetStatus();
@@ -205,13 +209,12 @@ public class StatusServiceTests : IDisposable
         var logPath = Path.Combine(_testDirectory, "pipeline.log");
         File.WriteAllText(logPath, "[2026-01-21 14:33:15] Stage: silence removal (42%)");
 
-        var settings = Options.Create(new PipelineSettings
+        var mockConfigService = CreateMockConfigService(new PipelineConfig
         {
             InputDirectory = "/some/input",
-            OutputDirectory = _testDirectory,
-            ConfigFile = "/some/config"
+            OutputDirectory = _testDirectory
         });
-        var service = new StatusService(settings);
+        var service = new StatusService(mockConfigService.Object);
 
         // Act
         var result = service.GetStatus();
@@ -231,13 +234,12 @@ public class StatusServiceTests : IDisposable
         var logPath = Path.Combine(_testDirectory, "pipeline.log");
         File.WriteAllText(logPath, "[2026-01-21 14:33:20] Completed file: myvideo.mp4");
 
-        var settings = Options.Create(new PipelineSettings
+        var mockConfigService = CreateMockConfigService(new PipelineConfig
         {
             InputDirectory = "/some/input",
-            OutputDirectory = _testDirectory,
-            ConfigFile = "/some/config"
+            OutputDirectory = _testDirectory
         });
-        var service = new StatusService(settings);
+        var service = new StatusService(mockConfigService.Object);
 
         // Act
         var result = service.GetStatus();
@@ -262,13 +264,12 @@ public class StatusServiceTests : IDisposable
 ";
         File.WriteAllText(logPath, logContent);
 
-        var settings = Options.Create(new PipelineSettings
+        var mockConfigService = CreateMockConfigService(new PipelineConfig
         {
             InputDirectory = "/some/input",
-            OutputDirectory = _testDirectory,
-            ConfigFile = "/some/config"
+            OutputDirectory = _testDirectory
         });
-        var service = new StatusService(settings);
+        var service = new StatusService(mockConfigService.Object);
 
         // Act
         var result = service.GetStatus();
@@ -286,13 +287,12 @@ public class StatusServiceTests : IDisposable
         var logPath = Path.Combine(_testDirectory, "pipeline.log");
         File.WriteAllText(logPath, "[2026-01-21 14:33:12] Some unrecognized log message");
 
-        var settings = Options.Create(new PipelineSettings
+        var mockConfigService = CreateMockConfigService(new PipelineConfig
         {
             InputDirectory = "/some/input",
-            OutputDirectory = _testDirectory,
-            ConfigFile = "/some/config"
+            OutputDirectory = _testDirectory
         });
-        var service = new StatusService(settings);
+        var service = new StatusService(mockConfigService.Object);
 
         // Act
         var result = service.GetStatus();
@@ -312,13 +312,12 @@ public class StatusServiceTests : IDisposable
         var logPath = Path.Combine(_testDirectory, "pipeline.log");
         File.WriteAllText(logPath, "Processing file: myvideo.mp4");
 
-        var settings = Options.Create(new PipelineSettings
+        var mockConfigService = CreateMockConfigService(new PipelineConfig
         {
             InputDirectory = "/some/input",
-            OutputDirectory = _testDirectory,
-            ConfigFile = "/some/config"
+            OutputDirectory = _testDirectory
         });
-        var service = new StatusService(settings);
+        var service = new StatusService(mockConfigService.Object);
 
         // Act
         var result = service.GetStatus();
@@ -337,13 +336,12 @@ public class StatusServiceTests : IDisposable
         var logPath = Path.Combine(_testDirectory, "pipeline.log");
         File.WriteAllText(logPath, "[2026-01-21 14:33:15] Stage: finalization (100%)");
 
-        var settings = Options.Create(new PipelineSettings
+        var mockConfigService = CreateMockConfigService(new PipelineConfig
         {
             InputDirectory = "/some/input",
-            OutputDirectory = _testDirectory,
-            ConfigFile = "/some/config"
+            OutputDirectory = _testDirectory
         });
-        var service = new StatusService(settings);
+        var service = new StatusService(mockConfigService.Object);
 
         // Act
         var result = service.GetStatus();
@@ -361,13 +359,12 @@ public class StatusServiceTests : IDisposable
         var logPath = Path.Combine(_testDirectory, "pipeline.log");
         File.WriteAllText(logPath, "[2026-01-21 14:33:15] Stage: initialization (0%)");
 
-        var settings = Options.Create(new PipelineSettings
+        var mockConfigService = CreateMockConfigService(new PipelineConfig
         {
             InputDirectory = "/some/input",
-            OutputDirectory = _testDirectory,
-            ConfigFile = "/some/config"
+            OutputDirectory = _testDirectory
         });
-        var service = new StatusService(settings);
+        var service = new StatusService(mockConfigService.Object);
 
         // Act
         var result = service.GetStatus();
@@ -385,13 +382,12 @@ public class StatusServiceTests : IDisposable
         var logPath = Path.Combine(_testDirectory, "pipeline.log");
         File.WriteAllText(logPath, "[2026-01-21 14:33:15] Stage: (25%)");
 
-        var settings = Options.Create(new PipelineSettings
+        var mockConfigService = CreateMockConfigService(new PipelineConfig
         {
             InputDirectory = "/some/input",
-            OutputDirectory = _testDirectory,
-            ConfigFile = "/some/config"
+            OutputDirectory = _testDirectory
         });
-        var service = new StatusService(settings);
+        var service = new StatusService(mockConfigService.Object);
 
         // Act
         var result = service.GetStatus();
@@ -409,13 +405,12 @@ public class StatusServiceTests : IDisposable
         var logPath = Path.Combine(_testDirectory, "pipeline.log");
         File.WriteAllText(logPath, "[2026-01-21 14:33:12] Processing file: myvideo (final).mp4");
 
-        var settings = Options.Create(new PipelineSettings
+        var mockConfigService = CreateMockConfigService(new PipelineConfig
         {
             InputDirectory = "/some/input",
-            OutputDirectory = _testDirectory,
-            ConfigFile = "/some/config"
+            OutputDirectory = _testDirectory
         });
-        var service = new StatusService(settings);
+        var service = new StatusService(mockConfigService.Object);
 
         // Act
         var result = service.GetStatus();

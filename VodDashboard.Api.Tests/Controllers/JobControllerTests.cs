@@ -13,13 +13,10 @@ public class JobControllerTests
 {
     private Mock<JobService> CreateMockJobService()
     {
-        var settings = Options.Create(new PipelineSettings
-        {
-            InputDirectory = "/test/input",
-            OutputDirectory = "/test/output",
-            ConfigFile = "/test/config"
-        });
-        return new Mock<JobService>(settings) { CallBase = true };
+        var mockOptions = new Mock<IOptions<PipelineSettings>>();
+        mockOptions.Setup(o => o.Value).Returns(new PipelineSettings { ConfigFile = "/test/config" });
+        var mockConfigService = new Mock<ConfigService>(mockOptions.Object) { CallBase = false };
+        return new Mock<JobService>(mockConfigService.Object) { CallBase = true };
     }
 
     [Fact]

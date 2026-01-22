@@ -5,14 +5,51 @@ using VodDashboard.Api.Models;
 
 namespace VodDashboard.Api.Services;
 
-public class ConfigService(IOptions<PipelineSettings> settings)
+public class ConfigService
 {
-    private readonly PipelineSettings _settings = settings.Value;
+    private readonly PipelineSettings _settings;
+    private readonly Lazy<PipelineConfig> _cachedConfig;
 
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
         WriteIndented = true
     };
+
+    public ConfigService(IOptions<PipelineSettings> settings)
+    {
+        _settings = settings.Value;
+        _cachedConfig = new Lazy<PipelineConfig>(GetConfigOrDefault);
+    }
+
+    public virtual PipelineConfig GetCachedConfig()
+    {
+        return _cachedConfig.Value;
+    }
+
+    private PipelineConfig GetConfigOrDefault()
+    {
+        // If ConfigFile is not configured, use defaults
+        if (string.IsNullOrWhiteSpace(_settings.ConfigFile))
+        {
+            return GetDefaultConfig();
+        }
+
+        // Try to load from config file, fallback to defaults if it doesn't exist
+        return GetConfig() ?? GetDefaultConfig();
+    }
+
+    public static PipelineConfig GetDefaultConfig()
+    {
+        return new PipelineConfig
+        {
+            InputDirectory = "./Input",
+            OutputDirectory = "./Output",
+            ArchiveDirectory = "./Input/Archive",
+            EnableHighlights = true,
+            EnableScenes = true,
+            SilenceThreshold = -40
+        };
+    }
 
     public virtual PipelineConfig? GetConfig()
     {
@@ -60,6 +97,9 @@ public class ConfigService(IOptions<PipelineSettings> settings)
             string tempPath = _settings.ConfigFile + ".tmp";
             File.WriteAllText(tempPath, json);
             File.Move(tempPath, _settings.ConfigFile, overwrite: true);
+
+            // Note: Cache is not updated here as it's immutable via Lazy<T>
+            // The cached value will persist until the application restarts
         }
         catch (JsonException ex)
         {
