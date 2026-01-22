@@ -449,6 +449,139 @@ public class JobServiceTests : IDisposable
     }
 
     [Fact]
+    public void GetJobDetail_WhenIdIsNull_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobDetail(null!);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenIdIsEmpty_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobDetail("");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenIdIsWhitespace_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobDetail("   ");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenIdContainsParentDirectoryReference_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobDetail("../parent");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenIdContainsPathTraversal_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobDetail("../../etc/passwd");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenIdContainsDirectorySeparator_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobDetail("folder/subdir");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenIdContainsForwardSlash_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act - Forward slash is always a directory separator
+        var result = service.GetJobDetail("job/test");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
     public void GetJobDetail_WhenJobExists_ReturnsJobDetail()
     {
         // Arrange

@@ -34,6 +34,15 @@ public class JobController(JobService jobService) : ControllerBase
     [HttpGet("{id}")]
     public IActionResult GetJobDetail(string id)
     {
+        if (string.IsNullOrWhiteSpace(id))
+            return BadRequest("Job id must be provided.");
+
+        if (id.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 ||
+            id.Contains(Path.DirectorySeparatorChar) ||
+            id.Contains(Path.AltDirectorySeparatorChar) ||
+            id.Contains("..", StringComparison.Ordinal))
+            return BadRequest("Invalid job id.");
+
         try
         {
             var job = jobService.GetJobDetail(id);

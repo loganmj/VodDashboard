@@ -50,7 +50,23 @@ public class JobService
             throw new InvalidOperationException("PipelineSettings.OutputDirectory is not configured.");
         }
 
-        var jobDir = new DirectoryInfo(Path.Combine(_settings.OutputDirectory, id));
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return null;
+        }
+
+        // Validate id to prevent directory traversal attacks
+        if (id.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
+            || id.Contains(Path.DirectorySeparatorChar)
+            || id.Contains(Path.AltDirectorySeparatorChar)
+            || id.Contains("..", StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        // Use Path.GetFileName to ensure we only get the filename component
+        var safeId = Path.GetFileName(id);
+        var jobDir = new DirectoryInfo(Path.Combine(_settings.OutputDirectory, safeId));
 
         if (!jobDir.Exists)
             return null;
@@ -63,18 +79,20 @@ public class JobService
 
             var highlights = Directory.Exists(highlightsDir)
                 ? Directory.GetFiles(highlightsDir, "*.mp4")
+                          // Path.GetFileName is safe here because Directory.GetFiles returns valid file paths
                           .Select(f => Path.GetFileName(f)!)
                           .ToList()
                 : new List<string>();
 
             var scenes = Directory.Exists(scenesDir)
                 ? Directory.GetFiles(scenesDir, "*.csv")
+                          // Path.GetFileName is safe here because Directory.GetFiles returns valid file paths
                           .Select(f => Path.GetFileName(f)!)
                           .ToList()
                 : new List<string>();
 
             return new JobDetailDto(
-                Id: id,
+                Id: safeId,
                 HasCleanVideo: File.Exists(cleanPath),
                 Highlights: highlights,
                 Scenes: scenes,

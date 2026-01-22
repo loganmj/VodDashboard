@@ -234,4 +234,116 @@ public class JobControllerTests
         problemDetails!.Title.Should().Be("Unexpected Error");
         problemDetails.Detail.Should().Be("Unexpected error");
     }
+
+    [Fact]
+    public void GetJobDetail_WhenIdIsNull_ReturnsBadRequest()
+    {
+        // Arrange
+        var mockService = CreateMockJobService();
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobDetail(null!);
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+        var badRequestResult = result as BadRequestObjectResult;
+        badRequestResult!.Value.Should().Be("Job id must be provided.");
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenIdIsEmpty_ReturnsBadRequest()
+    {
+        // Arrange
+        var mockService = CreateMockJobService();
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobDetail("");
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+        var badRequestResult = result as BadRequestObjectResult;
+        badRequestResult!.Value.Should().Be("Job id must be provided.");
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenIdIsWhitespace_ReturnsBadRequest()
+    {
+        // Arrange
+        var mockService = CreateMockJobService();
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobDetail("   ");
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+        var badRequestResult = result as BadRequestObjectResult;
+        badRequestResult!.Value.Should().Be("Job id must be provided.");
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenIdContainsParentDirectoryReference_ReturnsBadRequest()
+    {
+        // Arrange
+        var mockService = CreateMockJobService();
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobDetail("../parent");
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+        var badRequestResult = result as BadRequestObjectResult;
+        badRequestResult!.Value.Should().Be("Invalid job id.");
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenIdContainsPathTraversal_ReturnsBadRequest()
+    {
+        // Arrange
+        var mockService = CreateMockJobService();
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobDetail("../../etc/passwd");
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+        var badRequestResult = result as BadRequestObjectResult;
+        badRequestResult!.Value.Should().Be("Invalid job id.");
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenIdContainsDirectorySeparator_ReturnsBadRequest()
+    {
+        // Arrange
+        var mockService = CreateMockJobService();
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobDetail("folder/subdir");
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+        var badRequestResult = result as BadRequestObjectResult;
+        badRequestResult!.Value.Should().Be("Invalid job id.");
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenIdContainsForwardSlash_ReturnsBadRequest()
+    {
+        // Arrange
+        var mockService = CreateMockJobService();
+        var controller = new JobController(mockService.Object);
+
+        // Act - Forward slash is always a directory separator
+        var result = controller.GetJobDetail("job/test");
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+        var badRequestResult = result as BadRequestObjectResult;
+        badRequestResult!.Value.Should().Be("Invalid job id.");
+    }
 }
