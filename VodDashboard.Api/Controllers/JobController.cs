@@ -67,4 +67,41 @@ public class JobController(JobService jobService) : ControllerBase
                 detail: ex.Message);
         }
     }
+
+    [HttpGet("{id}/log")]
+    public IActionResult GetJobLog(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+            return BadRequest("Job id must be provided.");
+
+        if (id.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 ||
+            id.Contains(Path.DirectorySeparatorChar) ||
+            id.Contains(Path.AltDirectorySeparatorChar) ||
+            id.Contains("..", StringComparison.Ordinal))
+            return BadRequest("Invalid job id.");
+
+        try
+        {
+            var log = jobService.GetJobLog(id);
+
+            if (log == null)
+                return NotFound();
+
+            return Content(log, "text/plain");
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Configuration Error",
+                detail: ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Unexpected Error",
+                detail: ex.Message);
+        }
+    }
 }

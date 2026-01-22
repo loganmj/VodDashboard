@@ -111,6 +111,53 @@ public class JobService
         }
     }
 
+    public virtual string? GetJobLog(string id)
+    {
+        if (string.IsNullOrWhiteSpace(_settings.OutputDirectory))
+        {
+            throw new InvalidOperationException("PipelineSettings.OutputDirectory is not configured.");
+        }
+
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return null;
+        }
+
+        // Validate id to prevent directory traversal attacks
+        if (id.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
+            || id.Contains(Path.DirectorySeparatorChar)
+            || id.Contains(Path.AltDirectorySeparatorChar)
+            || id.Contains("..", StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        // Use Path.GetFileName to ensure we only get the filename component
+        var safeId = Path.GetFileName(id);
+        var jobDir = Path.Combine(_settings.OutputDirectory, safeId);
+
+        if (!Directory.Exists(jobDir))
+            return null;
+
+        var logPath = Path.Combine(jobDir, "log.txt");
+
+        if (!File.Exists(logPath))
+            return null;
+
+        try
+        {
+            return File.ReadAllText(logPath);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            throw new InvalidOperationException("Access to the log file is denied.", ex);
+        }
+        catch (IOException ex)
+        {
+            throw new InvalidOperationException("An I/O error occurred while reading the log file.", ex);
+        }
+    }
+
     private Task<JobSummaryDTO> BuildJobSummaryAsync(DirectoryInfo jobDir)
     {
         try
