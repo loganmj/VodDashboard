@@ -7,14 +7,12 @@ namespace VodDashboard.Api.Controllers;
 [Route("api/[controller]")]
 public class JobController(JobService jobService) : ControllerBase
 {
-    private readonly JobService _jobService = jobService;
-
     [HttpGet]
     public async Task<IActionResult> GetJobs()
     {
         try
         {
-            var jobs = await _jobService.GetJobsAsync();
+            var jobs = await jobService.GetJobsAsync();
             return Ok(jobs);
         }
         catch (InvalidOperationException ex)
@@ -22,6 +20,13 @@ public class JobController(JobService jobService) : ControllerBase
             return Problem(
                 statusCode: StatusCodes.Status500InternalServerError,
                 title: "Configuration Error",
+                detail: ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Unexpected Error",
                 detail: ex.Message);
         }
     }

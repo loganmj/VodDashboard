@@ -7,14 +7,12 @@ namespace VodDashboard.Api.Controllers;
 [Route("api/[controller]")]
 public class RawController(RawFileService rawService) : ControllerBase
 {
-    private readonly RawFileService _rawService = rawService;
-
     [HttpGet]
     public IActionResult GetRawFiles()
     {
         try
         {
-            var files = _rawService.GetRawFiles();
+            var files = rawService.GetRawFiles();
             return Ok(files);
         }
         catch (InvalidOperationException ex)
@@ -22,6 +20,13 @@ public class RawController(RawFileService rawService) : ControllerBase
             return Problem(
                 statusCode: StatusCodes.Status500InternalServerError,
                 title: "Configuration Error",
+                detail: ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Unexpected Error",
                 detail: ex.Message);
         }
     }

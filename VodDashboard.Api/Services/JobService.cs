@@ -43,7 +43,7 @@ public class JobService
         }
     }
 
-    private async Task<JobSummaryDTO> BuildJobSummaryAsync(DirectoryInfo jobDir)
+    private Task<JobSummaryDTO> BuildJobSummaryAsync(DirectoryInfo jobDir)
     {
         try
         {
@@ -51,33 +51,27 @@ public class JobService
             var highlightsDir = Path.Combine(jobDir.FullName, "highlights");
             var scenesDir = Path.Combine(jobDir.FullName, "scenes");
 
-            var highlightCountTask = Task.Run(() =>
+            var highlightCount = 0;
+            if (Directory.Exists(highlightsDir))
             {
-                if (Directory.Exists(highlightsDir))
-                    return Directory.GetFiles(highlightsDir, "*.mp4").Length;
-                return 0;
-            });
+                highlightCount = Directory.GetFiles(highlightsDir, "*.mp4").Length;
+            }
 
-            var sceneCountTask = Task.Run(() =>
+            var sceneCount = 0;
+            if (Directory.Exists(scenesDir))
             {
-                if (Directory.Exists(scenesDir))
-                    return Directory.GetFiles(scenesDir, "*.csv").Length;
-                return 0;
-            });
+                sceneCount = Directory.GetFiles(scenesDir, "*.csv").Length;
+            }
 
-            var hasCleanVideoTask = Task.Run(() => File.Exists(cleanPath));
+            var hasCleanVideo = File.Exists(cleanPath);
 
-            var highlightCount = await highlightCountTask;
-            var sceneCount = await sceneCountTask;
-            var hasCleanVideo = await hasCleanVideoTask;
-
-            return new JobSummaryDTO(
+            return Task.FromResult(new JobSummaryDTO(
                 Id: jobDir.Name,
                 HasCleanVideo: hasCleanVideo,
                 HighlightCount: highlightCount,
                 SceneCount: sceneCount,
                 Created: jobDir.CreationTimeUtc
-            );
+            ));
         }
         catch (UnauthorizedAccessException ex)
         {
