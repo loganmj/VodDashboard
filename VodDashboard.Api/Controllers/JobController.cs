@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using VodDashboard.Api.Domain;
+using VodDashboard.Api.DTO;
 using VodDashboard.Api.Services;
 
 namespace VodDashboard.Api.Controllers;
@@ -36,16 +37,14 @@ public class JobController(JobService jobService) : ControllerBase
     public IActionResult GetJobDetail(string id)
     {
         if (!Validation.IsValidJobId(id))
+        {
             return BadRequest(string.IsNullOrWhiteSpace(id) ? "Job id must be provided." : "Invalid job id.");
+        }
 
         try
         {
             var job = jobService.GetJobDetail(id);
-
-            if (job == null)
-                return NotFound();
-
-            return Ok(job);
+            return job == null ? NotFound() : Ok(job);
         }
         catch (InvalidOperationException ex)
         {
@@ -67,16 +66,14 @@ public class JobController(JobService jobService) : ControllerBase
     public IActionResult GetJobLog(string id)
     {
         if (!Validation.IsValidJobId(id))
+        {
             return BadRequest(string.IsNullOrWhiteSpace(id) ? "Job id must be provided." : "Invalid job id.");
+        }
 
         try
         {
-            var log = jobService.GetJobLog(id);
-
-            if (log == null)
-                return NotFound();
-
-            return Content(log, "text/plain");
+            string? log = jobService.GetJobLog(id);
+            return log == null ? NotFound() : Content(log, "text/plain");
         }
         catch (InvalidOperationException ex)
         {

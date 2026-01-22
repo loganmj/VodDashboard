@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using VodDashboard.Api.DTO;
 using VodDashboard.Api.Services;
 
 namespace VodDashboard.Api.Controllers;

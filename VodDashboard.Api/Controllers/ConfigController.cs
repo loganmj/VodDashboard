@@ -14,10 +14,7 @@ public class ConfigController(ConfigService configService) : ControllerBase
         try
         {
             var config = configService.GetConfig();
-            if (config == null)
-                return NotFound();
-
-            return Ok(config);
+            return config == null ? NotFound() : Ok(config);
         }
         catch (InvalidOperationException ex)
         {
