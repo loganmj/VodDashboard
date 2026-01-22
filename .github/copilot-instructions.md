@@ -1,7 +1,7 @@
-# Copilot Instructions for VodDashboard
+# Copilot Instructions for VODPipeline-API
 
 ## Project Overview
-VodDashboard is a tool for automatically ingesting and editing VOD (Video on Demand) content. This is an ASP.NET Core Web API project built with .NET 10.0.
+VODPipeline-API is a tool for automatically ingesting and editing VOD (Video on Demand) content. This is an ASP.NET Core Web API project built with .NET 10.0.
 
 ## Technology Stack
 - **Framework**: .NET 10.0
@@ -11,7 +11,7 @@ VodDashboard is a tool for automatically ingesting and editing VOD (Video on Dem
 
 ## Project Structure
 ```
-VodDashboard/
+VODPipeline-API/
 ├── VodDashboard.Api/          # Main Web API project
 │   ├── Program.cs             # Application entry point
 │   ├── appsettings.json       # Configuration
@@ -181,7 +181,7 @@ public class VideoServiceTests
 - Document complex business logic
 - Maintain API documentation through OpenAPI
 
-## VOD Dashboard Specific Guidelines
+## VODPipeline-API Specific Guidelines
 
 ### Domain Context
 - This application handles Video on Demand content
