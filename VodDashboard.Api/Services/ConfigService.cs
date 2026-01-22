@@ -26,8 +26,21 @@ public class ConfigService
         if (!File.Exists(_settings.ConfigFile))
             return null;
 
-        var json = File.ReadAllText(_settings.ConfigFile);
-        return JsonSerializer.Deserialize<ConfigDto>(json);
+        try
+        {
+            var json = File.ReadAllText(_settings.ConfigFile);
+            return JsonSerializer.Deserialize<ConfigDto>(json);
+        }
+        catch (JsonException)
+        {
+            // Invalid JSON format
+            return null;
+        }
+        catch (IOException)
+        {
+            // File I/O error
+            return null;
+        }
     }
 
     public virtual bool SaveConfig(ConfigDto config)
@@ -46,8 +59,19 @@ public class ConfigService
 
             return true;
         }
-        catch
+        catch (JsonException)
         {
+            // Serialization error
+            return false;
+        }
+        catch (IOException)
+        {
+            // File I/O error
+            return false;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // Permission denied
             return false;
         }
     }

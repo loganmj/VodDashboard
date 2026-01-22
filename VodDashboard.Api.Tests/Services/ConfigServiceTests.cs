@@ -415,4 +415,26 @@ public class ConfigServiceTests : IDisposable
         result.EnableScenes.Should().BeTrue();
         result.SilenceThreshold.Should().Be(-25);
     }
+
+    [Fact]
+    public void GetConfig_WhenConfigFileHasInvalidJson_ReturnsNull()
+    {
+        // Arrange
+        var configFile = Path.Combine(_testDirectory, "invalid.json");
+        File.WriteAllText(configFile, "{invalid json content");
+
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = "/some/output",
+            ConfigFile = configFile
+        });
+        var service = new ConfigService(settings);
+
+        // Act
+        var result = service.GetConfig();
+
+        // Assert
+        result.Should().BeNull();
+    }
 }

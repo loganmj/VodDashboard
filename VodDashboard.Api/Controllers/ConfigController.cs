@@ -21,9 +21,15 @@ public class ConfigController(ConfigService configService) : ControllerBase
     [HttpPost]
     public IActionResult SaveConfig([FromBody] ConfigDto config)
     {
-        var ok = configService.SaveConfig(config);
-        if (!ok)
-            return StatusCode(500, "Failed to save config");
+        if (config == null)
+            return BadRequest("Config data must be provided.");
+
+        var saveSuccessful = configService.SaveConfig(config);
+        if (!saveSuccessful)
+            return Problem(
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Save Failed",
+                detail: "Failed to save config");
 
         return Ok();
     }

@@ -98,30 +98,6 @@ public class ConfigControllerTests
     }
 
     [Fact]
-    public void SaveConfig_WhenSaveFails_ReturnsInternalServerError()
-    {
-        // Arrange
-        var config = new ConfigDto
-        {
-            InputDirectory = "/input",
-            OutputDirectory = "/output"
-        };
-        var mockService = CreateMockConfigService();
-        mockService.Setup(s => s.SaveConfig(It.IsAny<ConfigDto>())).Returns(false);
-        var controller = new ConfigController(mockService.Object);
-
-        // Act
-        var result = controller.SaveConfig(config);
-
-        // Assert
-        result.Should().BeOfType<ObjectResult>();
-        var objectResult = result as ObjectResult;
-        objectResult!.StatusCode.Should().Be(500);
-        objectResult.Value.Should().Be("Failed to save config");
-        mockService.Verify(s => s.SaveConfig(It.IsAny<ConfigDto>()), Times.Once);
-    }
-
-    [Fact]
     public void SaveConfig_WithMinimalConfig_CallsServiceWithCorrectData()
     {
         // Arrange
@@ -183,5 +159,47 @@ public class ConfigControllerTests
             c.EnableScenes == true &&
             c.SilenceThreshold == -40
         )), Times.Once);
+    }
+
+    [Fact]
+    public void SaveConfig_WhenConfigIsNull_ReturnsBadRequest()
+    {
+        // Arrange
+        var mockService = CreateMockConfigService();
+        var controller = new ConfigController(mockService.Object);
+
+        // Act
+        var result = controller.SaveConfig(null!);
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+        var badRequestResult = result as BadRequestObjectResult;
+        badRequestResult!.Value.Should().Be("Config data must be provided.");
+    }
+
+    [Fact]
+    public void SaveConfig_WhenSaveFails_ReturnsInternalServerErrorWithProblemDetails()
+    {
+        // Arrange
+        var config = new ConfigDto
+        {
+            InputDirectory = "/input",
+            OutputDirectory = "/output"
+        };
+        var mockService = CreateMockConfigService();
+        mockService.Setup(s => s.SaveConfig(It.IsAny<ConfigDto>())).Returns(false);
+        var controller = new ConfigController(mockService.Object);
+
+        // Act
+        var result = controller.SaveConfig(config);
+
+        // Assert
+        result.Should().BeOfType<ObjectResult>();
+        var objectResult = result as ObjectResult;
+        objectResult!.StatusCode.Should().Be(500);
+        var problemDetails = objectResult.Value as ProblemDetails;
+        problemDetails.Should().NotBeNull();
+        problemDetails!.Title.Should().Be("Save Failed");
+        problemDetails.Detail.Should().Be("Failed to save config");
     }
 }
