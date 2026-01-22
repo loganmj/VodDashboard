@@ -1,6 +1,6 @@
 namespace VodDashboard.Api.DTO
 {
-    public record StatusDTO(
+    public record JobStatus(
         bool IsRunning,
         string? CurrentFile,
         string? Stage,

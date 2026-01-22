@@ -26,7 +26,7 @@ public class StatusControllerTests
     public void GetStatus_WhenServiceReturnsStatus_ReturnsOkWithStatus()
     {
         // Arrange
-        var expectedStatus = new StatusDTO(
+        var expectedStatus = new JobStatus(
             IsRunning: true,
             CurrentFile: "video.mp4",
             Stage: "Processing",
@@ -50,7 +50,7 @@ public class StatusControllerTests
     public void GetStatus_WhenServiceReturnsNotRunning_ReturnsOkWithNotRunningStatus()
     {
         // Arrange
-        var expectedStatus = new StatusDTO(
+        var expectedStatus = new JobStatus(
             IsRunning: false,
             CurrentFile: null,
             Stage: null,

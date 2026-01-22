@@ -16,7 +16,7 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
 
     #region Public Methods
 
-    public virtual StatusDTO GetStatus()
+    public virtual JobStatus GetStatus()
     {
         if (string.IsNullOrWhiteSpace(_settings.OutputDirectory))
         {
@@ -27,7 +27,7 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
 
         if (!File.Exists(logPath))
         {
-            return new StatusDTO(
+            return new JobStatus(
                 IsRunning: false,
                 CurrentFile: null,
                 Stage: null,
@@ -48,7 +48,7 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
 
         if (lastLine == null)
         {
-            return new StatusDTO(
+            return new JobStatus(
                 IsRunning: false,
                 CurrentFile: null,
                 Stage: null,
@@ -66,7 +66,7 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
 
         if (lastLine.Contains("Processing file:"))
         {
-            return new StatusDTO(
+            return new JobStatus(
                 IsRunning: true,
                 CurrentFile: ExtractAfter(lastLine, "Processing file:", stripPercentage: false),
                 Stage: "Starting",
@@ -85,7 +85,7 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
                 percent = int.Parse(percentMatch.Groups[1].Value);
             }
 
-            return new StatusDTO(
+            return new JobStatus(
                 IsRunning: true,
                 CurrentFile: null,
                 Stage: stage,
@@ -94,7 +94,7 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
         }
         else if (lastLine.Contains("Completed file:"))
         {
-            return new StatusDTO(
+            return new JobStatus(
                 IsRunning: false,
                 CurrentFile: null,
                 Stage: null,
@@ -102,7 +102,7 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
                 LastUpdated: lastUpdated);
         }
 
-        return new StatusDTO(
+        return new JobStatus(
             IsRunning: false,
             CurrentFile: null,
             Stage: null,
