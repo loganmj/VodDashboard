@@ -43,7 +43,7 @@ public class JobController(JobService jobService) : ControllerBase
 
         try
         {
-            JobDetailDto? job = jobService.GetJobDetail(id);
+            var job = jobService.GetJobDetail(id);
             return job == null ? NotFound() : Ok(job);
         }
         catch (InvalidOperationException ex)
