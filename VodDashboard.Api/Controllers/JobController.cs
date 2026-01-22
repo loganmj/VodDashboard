@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using VodDashboard.Api.Domain;
 using VodDashboard.Api.Services;
 
 namespace VodDashboard.Api.Controllers;
@@ -34,14 +35,8 @@ public class JobController(JobService jobService) : ControllerBase
     [HttpGet("{id}")]
     public IActionResult GetJobDetail(string id)
     {
-        if (string.IsNullOrWhiteSpace(id))
-            return BadRequest("Job id must be provided.");
-
-        if (id.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 ||
-            id.Contains(Path.DirectorySeparatorChar) ||
-            id.Contains(Path.AltDirectorySeparatorChar) ||
-            id.Contains("..", StringComparison.Ordinal))
-            return BadRequest("Invalid job id.");
+        if (!Validation.IsValidJobId(id))
+            return BadRequest(string.IsNullOrWhiteSpace(id) ? "Job id must be provided." : "Invalid job id.");
 
         try
         {
@@ -71,14 +66,8 @@ public class JobController(JobService jobService) : ControllerBase
     [HttpGet("{id}/log")]
     public IActionResult GetJobLog(string id)
     {
-        if (string.IsNullOrWhiteSpace(id))
-            return BadRequest("Job id must be provided.");
-
-        if (id.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 ||
-            id.Contains(Path.DirectorySeparatorChar) ||
-            id.Contains(Path.AltDirectorySeparatorChar) ||
-            id.Contains("..", StringComparison.Ordinal))
-            return BadRequest("Invalid job id.");
+        if (!Validation.IsValidJobId(id))
+            return BadRequest(string.IsNullOrWhiteSpace(id) ? "Job id must be provided." : "Invalid job id.");
 
         try
         {
