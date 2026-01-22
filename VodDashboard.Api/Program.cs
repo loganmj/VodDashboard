@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<PipelineSettings>(builder.Configuration.GetSection("Pipeline"));
 builder.Services.AddSingleton<RawFileService>();
 builder.Services.AddSingleton<JobService>();
+builder.Services.AddSingleton<StatusService>();
 builder.Services.AddSingleton<ConfigService>();
 
 builder.Services.AddControllers();
