@@ -1,4 +1,6 @@
 using FluentAssertions;
+using Moq;
+using VodDashboard.Api.DTO;
 using Microsoft.Extensions.Options;
 using VodDashboard.Api.Models;
 using VodDashboard.Api.Services;
@@ -34,40 +36,44 @@ public class RawFileServiceTests : IDisposable
     public void GetRawFiles_WhenInputDirectoryIsEmpty_ThrowsInvalidOperationException()
     {
         // Arrange
-        var settings = Options.Create(new PipelineSettings
+        var mockOptions = new Mock<IOptions<PipelineSettings>>();
+        mockOptions.Setup(o => o.Value).Returns(new PipelineSettings { ConfigFile = "/dummy/config.json" });
+        var mockConfigService = new Mock<ConfigService>(mockOptions.Object);
+        mockConfigService.Setup(c => c.GetCachedConfig()).Returns(new PipelineConfig
         {
             InputDirectory = string.Empty,
-            OutputDirectory = "/some/output",
-            ConfigFile = "/some/config"
+            OutputDirectory = "/some/output"
         });
-        var service = new RawFileService(settings);
+        var service = new RawFileService(mockConfigService.Object);
 
         // Act
         Action act = () => service.GetRawFiles();
 
         // Assert
         act.Should().Throw<InvalidOperationException>()
-            .WithMessage("PipelineSettings.InputDirectory is not configured.");
+            .WithMessage("PipelineConfig.InputDirectory is not configured.");
     }
 
     [Fact]
     public void GetRawFiles_WhenInputDirectoryIsWhitespace_ThrowsInvalidOperationException()
     {
         // Arrange
-        var settings = Options.Create(new PipelineSettings
+        var mockOptions = new Mock<IOptions<PipelineSettings>>();
+        mockOptions.Setup(o => o.Value).Returns(new PipelineSettings { ConfigFile = "/dummy/config.json" });
+        var mockConfigService = new Mock<ConfigService>(mockOptions.Object);
+        mockConfigService.Setup(c => c.GetCachedConfig()).Returns(new PipelineConfig
         {
             InputDirectory = "   ",
-            OutputDirectory = "/some/output",
-            ConfigFile = "/some/config"
+            OutputDirectory = "/some/output"
         });
-        var service = new RawFileService(settings);
+        var service = new RawFileService(mockConfigService.Object);
 
         // Act
         Action act = () => service.GetRawFiles();
 
         // Assert
         act.Should().Throw<InvalidOperationException>()
-            .WithMessage("PipelineSettings.InputDirectory is not configured.");
+            .WithMessage("PipelineConfig.InputDirectory is not configured.");
     }
 
     [Fact]
@@ -75,13 +81,15 @@ public class RawFileServiceTests : IDisposable
     {
         // Arrange
         var nonExistentDirectory = Path.Combine(Path.GetTempPath(), $"NonExistent_{Guid.NewGuid()}");
-        var settings = Options.Create(new PipelineSettings
+        var mockOptions = new Mock<IOptions<PipelineSettings>>();
+        mockOptions.Setup(o => o.Value).Returns(new PipelineSettings { ConfigFile = "/dummy/config.json" });
+        var mockConfigService = new Mock<ConfigService>(mockOptions.Object);
+        mockConfigService.Setup(c => c.GetCachedConfig()).Returns(new PipelineConfig
         {
             InputDirectory = nonExistentDirectory,
-            OutputDirectory = "/some/output",
-            ConfigFile = "/some/config"
+            OutputDirectory = "/some/output"
         });
-        var service = new RawFileService(settings);
+        var service = new RawFileService(mockConfigService.Object);
 
         // Act
         var result = service.GetRawFiles();
@@ -94,13 +102,15 @@ public class RawFileServiceTests : IDisposable
     public void GetRawFiles_WhenDirectoryIsEmpty_ReturnsEmptyCollection()
     {
         // Arrange
-        var settings = Options.Create(new PipelineSettings
+        var mockOptions = new Mock<IOptions<PipelineSettings>>();
+        mockOptions.Setup(o => o.Value).Returns(new PipelineSettings { ConfigFile = "/dummy/config.json" });
+        var mockConfigService = new Mock<ConfigService>(mockOptions.Object);
+        mockConfigService.Setup(c => c.GetCachedConfig()).Returns(new PipelineConfig
         {
             InputDirectory = _testDirectory,
-            OutputDirectory = "/some/output",
-            ConfigFile = "/some/config"
+            OutputDirectory = "/some/output"
         });
-        var service = new RawFileService(settings);
+        var service = new RawFileService(mockConfigService.Object);
 
         // Act
         var result = service.GetRawFiles();
@@ -121,13 +131,15 @@ public class RawFileServiceTests : IDisposable
         File.WriteAllText(txtFile, "test content");
         File.WriteAllText(aviFile, "test content");
 
-        var settings = Options.Create(new PipelineSettings
+        var mockOptions = new Mock<IOptions<PipelineSettings>>();
+        mockOptions.Setup(o => o.Value).Returns(new PipelineSettings { ConfigFile = "/dummy/config.json" });
+        var mockConfigService = new Mock<ConfigService>(mockOptions.Object);
+        mockConfigService.Setup(c => c.GetCachedConfig()).Returns(new PipelineConfig
         {
             InputDirectory = _testDirectory,
-            OutputDirectory = "/some/output",
-            ConfigFile = "/some/config"
+            OutputDirectory = "/some/output"
         });
-        var service = new RawFileService(settings);
+        var service = new RawFileService(mockConfigService.Object);
 
         // Act
         var result = service.GetRawFiles().ToList();
@@ -153,13 +165,15 @@ public class RawFileServiceTests : IDisposable
         File.SetCreationTimeUtc(file1, baseTime.AddMinutes(-2)); // Oldest
         File.SetCreationTimeUtc(file2, baseTime.AddMinutes(-1));
         File.SetCreationTimeUtc(file3, baseTime); // Most recent
-        var settings = Options.Create(new PipelineSettings
+        var mockOptions = new Mock<IOptions<PipelineSettings>>();
+        mockOptions.Setup(o => o.Value).Returns(new PipelineSettings { ConfigFile = "/dummy/config.json" });
+        var mockConfigService = new Mock<ConfigService>(mockOptions.Object);
+        mockConfigService.Setup(c => c.GetCachedConfig()).Returns(new PipelineConfig
         {
             InputDirectory = _testDirectory,
-            OutputDirectory = "/some/output",
-            ConfigFile = "/some/config"
+            OutputDirectory = "/some/output"
         });
-        var service = new RawFileService(settings);
+        var service = new RawFileService(mockConfigService.Object);
 
         // Act
         var result = service.GetRawFiles().ToList();
@@ -184,13 +198,15 @@ public class RawFileServiceTests : IDisposable
         var expectedSize = fileInfo.Length;
         var expectedCreationTime = new DateTimeOffset(fileInfo.CreationTimeUtc, TimeSpan.Zero);
 
-        var settings = Options.Create(new PipelineSettings
+        var mockOptions = new Mock<IOptions<PipelineSettings>>();
+        mockOptions.Setup(o => o.Value).Returns(new PipelineSettings { ConfigFile = "/dummy/config.json" });
+        var mockConfigService = new Mock<ConfigService>(mockOptions.Object);
+        mockConfigService.Setup(c => c.GetCachedConfig()).Returns(new PipelineConfig
         {
             InputDirectory = _testDirectory,
-            OutputDirectory = "/some/output",
-            ConfigFile = "/some/config"
+            OutputDirectory = "/some/output"
         });
-        var service = new RawFileService(settings);
+        var service = new RawFileService(mockConfigService.Object);
 
         // Act
         var result = service.GetRawFiles().Single();
@@ -213,13 +229,15 @@ public class RawFileServiceTests : IDisposable
         File.WriteAllText(topLevelFile, "content");
         File.WriteAllText(subLevelFile, "content");
 
-        var settings = Options.Create(new PipelineSettings
+        var mockOptions = new Mock<IOptions<PipelineSettings>>();
+        mockOptions.Setup(o => o.Value).Returns(new PipelineSettings { ConfigFile = "/dummy/config.json" });
+        var mockConfigService = new Mock<ConfigService>(mockOptions.Object);
+        mockConfigService.Setup(c => c.GetCachedConfig()).Returns(new PipelineConfig
         {
             InputDirectory = _testDirectory,
-            OutputDirectory = "/some/output",
-            ConfigFile = "/some/config"
+            OutputDirectory = "/some/output"
         });
-        var service = new RawFileService(settings);
+        var service = new RawFileService(mockConfigService.Object);
 
         // Act
         var result = service.GetRawFiles().ToList();

@@ -13,13 +13,10 @@ public class StatusControllerTests
 {
     private Mock<StatusService> CreateMockStatusService()
     {
-        var settings = Options.Create(new PipelineSettings
-        {
-            InputDirectory = "/test/input",
-            OutputDirectory = "/test/output",
-            ConfigFile = "/test/config"
-        });
-        return new Mock<StatusService>(settings) { CallBase = true };
+        var mockOptions = new Mock<IOptions<PipelineSettings>>();
+        mockOptions.Setup(o => o.Value).Returns(new PipelineSettings { ConfigFile = "/test/config" });
+        var mockConfigService = new Mock<ConfigService>(mockOptions.Object) { CallBase = false };
+        return new Mock<StatusService>(mockConfigService.Object) { CallBase = true };
     }
 
     [Fact]

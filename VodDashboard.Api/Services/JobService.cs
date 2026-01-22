@@ -1,22 +1,23 @@
-﻿using Microsoft.Extensions.Options;
-using VodDashboard.Api.Domain;
+﻿using VodDashboard.Api.Domain;
 using VodDashboard.Api.DTO;
-using VodDashboard.Api.Models;
+using VodDashboard.Api.Services;
 
 namespace VodDashboard.Api.Services;
 
-public class JobService(IOptions<PipelineSettings> settings)
+public class JobService(ConfigService configService)
 {
-    private readonly PipelineSettings _settings = settings.Value;
+    private readonly ConfigService _configService = configService;
 
     public virtual async Task<IEnumerable<JobData>> GetJobsAsync()
     {
-        if (string.IsNullOrWhiteSpace(_settings.OutputDirectory))
+        PipelineConfig config = _configService.GetCachedConfig();
+
+        if (string.IsNullOrWhiteSpace(config.OutputDirectory))
         {
-            throw new InvalidOperationException("PipelineSettings.OutputDirectory is not configured.");
+            throw new InvalidOperationException("PipelineConfig.OutputDirectory is not configured.");
         }
 
-        var dir = new DirectoryInfo(_settings.OutputDirectory);
+        var dir = new DirectoryInfo(config.OutputDirectory);
 
         if (!dir.Exists)
         {
@@ -41,9 +42,11 @@ public class JobService(IOptions<PipelineSettings> settings)
 
     public virtual JobData? GetJobDetail(string id)
     {
-        if (string.IsNullOrWhiteSpace(_settings.OutputDirectory))
+        PipelineConfig config = _configService.GetCachedConfig();
+
+        if (string.IsNullOrWhiteSpace(config.OutputDirectory))
         {
-            throw new InvalidOperationException("PipelineSettings.OutputDirectory is not configured.");
+            throw new InvalidOperationException("PipelineConfig.OutputDirectory is not configured.");
         }
 
         if (!Validation.IsValidJobId(id))
@@ -53,7 +56,7 @@ public class JobService(IOptions<PipelineSettings> settings)
 
         // Use Path.GetFileName to ensure we only get the filename component
         string safeId = Validation.SanitizeJobId(id);
-        DirectoryInfo jobDir = new(Path.Combine(_settings.OutputDirectory, safeId));
+        DirectoryInfo jobDir = new(Path.Combine(config.OutputDirectory, safeId));
 
         if (!jobDir.Exists)
         {
@@ -100,9 +103,11 @@ public class JobService(IOptions<PipelineSettings> settings)
 
     public virtual string? GetJobLog(string id)
     {
-        if (string.IsNullOrWhiteSpace(_settings.OutputDirectory))
+        PipelineConfig config = _configService.GetCachedConfig();
+
+        if (string.IsNullOrWhiteSpace(config.OutputDirectory))
         {
-            throw new InvalidOperationException("PipelineSettings.OutputDirectory is not configured.");
+            throw new InvalidOperationException("PipelineConfig.OutputDirectory is not configured.");
         }
 
         if (!Validation.IsValidJobId(id))
@@ -112,7 +117,7 @@ public class JobService(IOptions<PipelineSettings> settings)
 
         // Use Path.GetFileName to ensure we only get the filename component
         string safeId = Validation.SanitizeJobId(id);
-        string jobDir = Path.Combine(_settings.OutputDirectory, safeId);
+        string jobDir = Path.Combine(config.OutputDirectory, safeId);
 
         if (!Directory.Exists(jobDir))
         {

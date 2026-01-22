@@ -1,14 +1,13 @@
-﻿using Microsoft.Extensions.Options;
-using VodDashboard.Api.Models;
+﻿using VodDashboard.Api.Services;
 using VodDashboard.Api.DTO;
 
 namespace VodDashboard.Api.Services;
 
-public class RawFileService(IOptions<PipelineSettings> settings)
+public class RawFileService(ConfigService configService)
 {
     #region Private Data
 
-    private readonly PipelineSettings _settings = settings.Value;
+    private readonly ConfigService _configService = configService;
 
     #endregion
 
@@ -16,12 +15,14 @@ public class RawFileService(IOptions<PipelineSettings> settings)
 
     public virtual IEnumerable<RawFileMetadata> GetRawFiles()
     {
-        if (string.IsNullOrWhiteSpace(_settings.InputDirectory))
+        PipelineConfig config = _configService.GetCachedConfig();
+
+        if (string.IsNullOrWhiteSpace(config.InputDirectory))
         {
-            throw new InvalidOperationException("PipelineSettings.InputDirectory is not configured.");
+            throw new InvalidOperationException("PipelineConfig.InputDirectory is not configured.");
         }
 
-        var dir = new DirectoryInfo(_settings.InputDirectory);
+        var dir = new DirectoryInfo(config.InputDirectory);
 
         if (!dir.Exists)
         {

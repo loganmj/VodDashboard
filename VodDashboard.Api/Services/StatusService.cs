@@ -1,16 +1,15 @@
-using Microsoft.Extensions.Options;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using VodDashboard.Api.DTO;
-using VodDashboard.Api.Models;
+using VodDashboard.Api.Services;
 
 namespace VodDashboard.Api.Services;
 
-public partial class StatusService(IOptions<PipelineSettings> settings)
+public partial class StatusService(ConfigService configService)
 {
     #region Private Data
 
-    private readonly PipelineSettings _settings = settings.Value;
+    private readonly ConfigService _configService = configService;
 
     #endregion
 
@@ -18,12 +17,14 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
 
     public virtual JobStatus GetStatus()
     {
-        if (string.IsNullOrWhiteSpace(_settings.OutputDirectory))
+        PipelineConfig config = _configService.GetCachedConfig();
+
+        if (string.IsNullOrWhiteSpace(config.OutputDirectory))
         {
-            throw new InvalidOperationException("PipelineSettings.OutputDirectory is not configured.");
+            throw new InvalidOperationException("PipelineConfig.OutputDirectory is not configured.");
         }
 
-        var logPath = Path.Combine(_settings.OutputDirectory, "pipeline.log");
+        var logPath = Path.Combine(config.OutputDirectory, "pipeline.log");
 
         if (!File.Exists(logPath))
         {

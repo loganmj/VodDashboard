@@ -15,8 +15,6 @@ public class ConfigControllerTests
     {
         var settings = Options.Create(new PipelineSettings
         {
-            InputDirectory = "/test/input",
-            OutputDirectory = "/test/output",
             ConfigFile = "/test/config.json"
         });
         return new Mock<ConfigService>(settings) { CallBase = true };

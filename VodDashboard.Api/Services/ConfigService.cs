@@ -8,11 +8,34 @@ namespace VodDashboard.Api.Services;
 public class ConfigService(IOptions<PipelineSettings> settings)
 {
     private readonly PipelineSettings _settings = settings.Value;
+    private PipelineConfig? _cachedConfig;
 
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
         WriteIndented = true
     };
+
+    public virtual PipelineConfig GetCachedConfig()
+    {
+        if (_cachedConfig == null)
+        {
+            _cachedConfig = GetConfig() ?? GetDefaultConfig();
+        }
+        return _cachedConfig;
+    }
+
+    private static PipelineConfig GetDefaultConfig()
+    {
+        return new PipelineConfig
+        {
+            InputDirectory = "./Input",
+            OutputDirectory = "./Output",
+            ArchiveDirectory = "./Input/Archive",
+            EnableHighlights = true,
+            EnableScenes = true,
+            SilenceThreshold = -40
+        };
+    }
 
     public virtual PipelineConfig? GetConfig()
     {
@@ -60,6 +83,9 @@ public class ConfigService(IOptions<PipelineSettings> settings)
             string tempPath = _settings.ConfigFile + ".tmp";
             File.WriteAllText(tempPath, json);
             File.Move(tempPath, _settings.ConfigFile, overwrite: true);
+
+            // Update cached config
+            _cachedConfig = config;
         }
         catch (JsonException ex)
         {
