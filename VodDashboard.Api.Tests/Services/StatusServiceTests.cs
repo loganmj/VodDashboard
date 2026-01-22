@@ -337,4 +337,28 @@ public class StatusServiceTests : IDisposable
         result.Stage.Should().Be("initialization");
         result.Percent.Should().Be(0);
     }
+
+    [Fact]
+    public void GetStatus_WhenStageStartsWithParenthesis_ParsesCorrectly()
+    {
+        // Arrange
+        var logPath = Path.Combine(_testDirectory, "pipeline.log");
+        File.WriteAllText(logPath, "[2026-01-21 14:33:15] Stage: (25%)");
+
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new StatusService(settings);
+
+        // Act
+        var result = service.GetStatus();
+
+        // Assert
+        result.IsRunning.Should().BeTrue();
+        result.Stage.Should().Be(string.Empty);
+        result.Percent.Should().Be(25);
+    }
 }

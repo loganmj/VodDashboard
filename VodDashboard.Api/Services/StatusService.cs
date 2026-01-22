@@ -110,7 +110,7 @@ public class StatusService(IOptions<PipelineSettings> settings)
         
         // Remove percentage if present in the extracted text
         var percentIndex = result.IndexOf('(');
-        if (percentIndex > 0)
+        if (percentIndex >= 0)
         {
             result = result[..percentIndex].Trim();
         }
