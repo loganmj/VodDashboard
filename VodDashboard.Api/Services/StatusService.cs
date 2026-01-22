@@ -6,7 +6,7 @@ using VodDashboard.Api.DTO;
 
 namespace VodDashboard.Api.Services;
 
-public class StatusService(IOptions<PipelineSettings> settings)
+public partial class StatusService(IOptions<PipelineSettings> settings)
 {
     #region Private Data
 
@@ -43,11 +43,7 @@ public class StatusService(IOptions<PipelineSettings> settings)
                            .Reverse()
                            .FirstOrDefault(l => !string.IsNullOrWhiteSpace(l));
         }
-        catch (UnauthorizedAccessException ex)
-        {
-            throw new InvalidOperationException("Unable to read pipeline status log.", ex);
-        }
-        catch (IOException ex)
+        catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
         {
             throw new InvalidOperationException("Unable to read pipeline status log.", ex);
         }
@@ -120,6 +116,12 @@ public class StatusService(IOptions<PipelineSettings> settings)
 
     #region Private Methods
 
+    [GeneratedRegex(@"\(\s*\d+%\s*\)")]
+    private static partial Regex PercentagePattern();
+
+    [GeneratedRegex(@"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\]")]
+    private static partial Regex TimestampPattern();
+
     private static string ExtractAfter(string line, string marker, bool stripPercentage)
     {
         int idx = line.IndexOf(marker, StringComparison.Ordinal);
@@ -133,7 +135,7 @@ public class StatusService(IOptions<PipelineSettings> settings)
             if (percentIndex >= 0)
             {
                 string parenthetical = result[percentIndex..];
-                if (Regex.IsMatch(parenthetical, @"\(\s*\d+%\s*\)"))
+                if (PercentagePattern().IsMatch(parenthetical))
                 {
                     result = result[..percentIndex].TrimEnd();
                 }
@@ -146,7 +148,7 @@ public class StatusService(IOptions<PipelineSettings> settings)
     private static DateTime? ParseTimestamp(string line)
     {
         // Expected format: [2026-01-21 14:33:12]
-        var match = Regex.Match(line, @"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\]");
+        var match = TimestampPattern().Match(line);
         if (match.Success && DateTime.TryParseExact(
             match.Groups[1].Value,
             "yyyy-MM-dd HH:mm:ss",
