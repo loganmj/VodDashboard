@@ -33,7 +33,7 @@ public class ConfigController(ConfigService configService) : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult SaveConfig([FromBody] ConfigDto config)
+    public IActionResult SaveConfig([FromBody] PipelineConfig config)
     {
         try
         {

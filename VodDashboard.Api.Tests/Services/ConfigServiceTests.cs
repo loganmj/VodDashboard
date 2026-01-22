@@ -189,7 +189,7 @@ public class ConfigServiceTests : IDisposable
             ConfigFile = null!
         });
         var service = new ConfigService(settings);
-        var config = new ConfigDto
+        var config = new PipelineConfig
         {
             InputDirectory = "/input",
             OutputDirectory = "/output"
@@ -214,7 +214,7 @@ public class ConfigServiceTests : IDisposable
             ConfigFile = ""
         });
         var service = new ConfigService(settings);
-        var config = new ConfigDto
+        var config = new PipelineConfig
         {
             InputDirectory = "/input",
             OutputDirectory = "/output"
@@ -239,7 +239,7 @@ public class ConfigServiceTests : IDisposable
             ConfigFile = "   "
         });
         var service = new ConfigService(settings);
-        var config = new ConfigDto
+        var config = new PipelineConfig
         {
             InputDirectory = "/input",
             OutputDirectory = "/output"
@@ -265,7 +265,7 @@ public class ConfigServiceTests : IDisposable
             ConfigFile = configFile
         });
         var service = new ConfigService(settings);
-        var config = new ConfigDto
+        var config = new PipelineConfig
         {
             InputDirectory = "/input",
             OutputDirectory = "/output",
@@ -304,13 +304,13 @@ public class ConfigServiceTests : IDisposable
         });
         var service = new ConfigService(settings);
 
-        var config1 = new ConfigDto
+        var config1 = new PipelineConfig
         {
             InputDirectory = "/input1",
             SilenceThreshold = -20
         };
 
-        var config2 = new ConfigDto
+        var config2 = new PipelineConfig
         {
             InputDirectory = "/input2",
             SilenceThreshold = -40
@@ -341,7 +341,7 @@ public class ConfigServiceTests : IDisposable
             ConfigFile = configFile
         });
         var service = new ConfigService(settings);
-        var config = new ConfigDto
+        var config = new PipelineConfig
         {
             InputDirectory = "/input",
             OutputDirectory = "/output"
@@ -367,7 +367,7 @@ public class ConfigServiceTests : IDisposable
             ConfigFile = configFile
         });
         var service = new ConfigService(settings);
-        var config = new ConfigDto
+        var config = new PipelineConfig
         {
             InputDirectory = "/input",
             OutputDirectory = "/output"
@@ -394,7 +394,7 @@ public class ConfigServiceTests : IDisposable
             ConfigFile = configFile
         });
         var service = new ConfigService(settings);
-        var config = new ConfigDto
+        var config = new PipelineConfig
         {
             InputDirectory = "/new/input",
             OutputDirectory = "/new/output",

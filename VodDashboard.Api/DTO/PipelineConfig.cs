@@ -1,6 +1,6 @@
 namespace VodDashboard.Api.DTO
 {
-    public record ConfigDto
+    public record PipelineConfig
     {
         public string InputDirectory { get; init; } = "";
         public string OutputDirectory { get; init; } = "";
