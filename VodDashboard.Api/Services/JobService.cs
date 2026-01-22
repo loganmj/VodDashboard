@@ -79,15 +79,17 @@ public class JobService
 
             var highlights = Directory.Exists(highlightsDir)
                 ? Directory.GetFiles(highlightsDir, "*.mp4")
-                          // Path.GetFileName is safe here because Directory.GetFiles returns valid file paths
-                          .Select(f => Path.GetFileName(f)!)
+                          .Select(Path.GetFileName)
+                          .Where(name => !string.IsNullOrEmpty(name))
+                          .Cast<string>()
                           .ToList()
                 : new List<string>();
 
             var scenes = Directory.Exists(scenesDir)
                 ? Directory.GetFiles(scenesDir, "*.csv")
-                          // Path.GetFileName is safe here because Directory.GetFiles returns valid file paths
-                          .Select(f => Path.GetFileName(f)!)
+                          .Select(Path.GetFileName)
+                          .Where(name => !string.IsNullOrEmpty(name))
+                          .Cast<string>()
                           .ToList()
                 : new List<string>();
 
