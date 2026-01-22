@@ -131,14 +131,11 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
         // Only strip percentage notation from stage names, not from filenames
         if (stripPercentage)
         {
-            int percentIndex = result.IndexOf('(');
-            if (percentIndex >= 0)
+            string trimmedResult = result.TrimEnd();
+            Match match = PercentagePattern().Match(trimmedResult);
+            if (match.Success && match.Index + match.Length == trimmedResult.Length)
             {
-                string parenthetical = result[percentIndex..];
-                if (PercentagePattern().IsMatch(parenthetical))
-                {
-                    result = result[..percentIndex].TrimEnd();
-                }
+                result = trimmedResult[..match.Index].TrimEnd();
             }
         }
         
