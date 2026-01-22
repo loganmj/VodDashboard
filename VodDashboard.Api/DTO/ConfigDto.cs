@@ -1,12 +1,12 @@
 namespace VodDashboard.Api.DTO
 {
-    public class ConfigDto
+    public record ConfigDto
     {
-        public string InputDirectory { get; set; } = "";
-        public string OutputDirectory { get; set; } = "";
-        public string ArchiveDirectory { get; set; } = "";
-        public bool EnableHighlights { get; set; }
-        public bool EnableScenes { get; set; }
-        public int SilenceThreshold { get; set; }
+        public string InputDirectory { get; init; } = "";
+        public string OutputDirectory { get; init; } = "";
+        public string ArchiveDirectory { get; init; } = "";
+        public bool EnableHighlights { get; init; }
+        public bool EnableScenes { get; init; }
+        public int SilenceThreshold { get; init; }
     }
 }

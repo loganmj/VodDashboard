@@ -79,7 +79,7 @@ public class ConfigControllerTests
             SilenceThreshold = -30
         };
         var mockService = CreateMockConfigService();
-        mockService.Setup(s => s.SaveConfig(It.IsAny<ConfigDto>())).Returns(true);
+        mockService.Setup(s => s.SaveConfig(It.IsAny<ConfigDto>()));
         var controller = new ConfigController(mockService.Object);
 
         // Act
@@ -91,8 +91,8 @@ public class ConfigControllerTests
             c.InputDirectory == "/input" &&
             c.OutputDirectory == "/output" &&
             c.ArchiveDirectory == "/archive" &&
-            c.EnableHighlights == true &&
-            c.EnableScenes == false &&
+            c.EnableHighlights &&
+            !c.EnableScenes &&
             c.SilenceThreshold == -30
         )), Times.Once);
     }
@@ -111,7 +111,7 @@ public class ConfigControllerTests
             SilenceThreshold = 0
         };
         var mockService = CreateMockConfigService();
-        mockService.Setup(s => s.SaveConfig(It.IsAny<ConfigDto>())).Returns(true);
+        mockService.Setup(s => s.SaveConfig(It.IsAny<ConfigDto>()));
         var controller = new ConfigController(mockService.Object);
 
         // Act
@@ -123,8 +123,8 @@ public class ConfigControllerTests
             c.InputDirectory == "" &&
             c.OutputDirectory == "" &&
             c.ArchiveDirectory == "" &&
-            c.EnableHighlights == false &&
-            c.EnableScenes == false &&
+            !c.EnableHighlights &&
+            !c.EnableScenes &&
             c.SilenceThreshold == 0
         )), Times.Once);
     }
@@ -143,7 +143,7 @@ public class ConfigControllerTests
             SilenceThreshold = -40
         };
         var mockService = CreateMockConfigService();
-        mockService.Setup(s => s.SaveConfig(It.IsAny<ConfigDto>())).Returns(true);
+        mockService.Setup(s => s.SaveConfig(It.IsAny<ConfigDto>()));
         var controller = new ConfigController(mockService.Object);
 
         // Act
@@ -155,30 +155,14 @@ public class ConfigControllerTests
             c.InputDirectory == "/complete/input" &&
             c.OutputDirectory == "/complete/output" &&
             c.ArchiveDirectory == "/complete/archive" &&
-            c.EnableHighlights == true &&
-            c.EnableScenes == true &&
+            c.EnableHighlights &&
+            c.EnableScenes &&
             c.SilenceThreshold == -40
         )), Times.Once);
     }
 
     [Fact]
-    public void SaveConfig_WhenConfigIsNull_ReturnsBadRequest()
-    {
-        // Arrange
-        var mockService = CreateMockConfigService();
-        var controller = new ConfigController(mockService.Object);
-
-        // Act
-        var result = controller.SaveConfig(null!);
-
-        // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
-        var badRequestResult = result as BadRequestObjectResult;
-        badRequestResult!.Value.Should().Be("Config data must be provided.");
-    }
-
-    [Fact]
-    public void SaveConfig_WhenSaveFails_ReturnsInternalServerErrorWithProblemDetails()
+    public void SaveConfig_WhenInvalidOperationExceptionThrown_ReturnsInternalServerError()
     {
         // Arrange
         var config = new ConfigDto
@@ -187,7 +171,7 @@ public class ConfigControllerTests
             OutputDirectory = "/output"
         };
         var mockService = CreateMockConfigService();
-        mockService.Setup(s => s.SaveConfig(It.IsAny<ConfigDto>())).Returns(false);
+        mockService.Setup(s => s.SaveConfig(It.IsAny<ConfigDto>())).Throws(new InvalidOperationException("Configuration error"));
         var controller = new ConfigController(mockService.Object);
 
         // Act
@@ -199,7 +183,75 @@ public class ConfigControllerTests
         objectResult!.StatusCode.Should().Be(500);
         var problemDetails = objectResult.Value as ProblemDetails;
         problemDetails.Should().NotBeNull();
-        problemDetails!.Title.Should().Be("Save Failed");
-        problemDetails.Detail.Should().Be("Failed to save config");
+        problemDetails!.Title.Should().Be("Configuration Error");
+        problemDetails.Detail.Should().Be("Configuration error");
+    }
+
+    [Fact]
+    public void SaveConfig_WhenUnexpectedExceptionThrown_ReturnsInternalServerError()
+    {
+        // Arrange
+        var config = new ConfigDto
+        {
+            InputDirectory = "/input",
+            OutputDirectory = "/output"
+        };
+        var mockService = CreateMockConfigService();
+        mockService.Setup(s => s.SaveConfig(It.IsAny<ConfigDto>())).Throws(new Exception("Unexpected error"));
+        var controller = new ConfigController(mockService.Object);
+
+        // Act
+        var result = controller.SaveConfig(config);
+
+        // Assert
+        result.Should().BeOfType<ObjectResult>();
+        var objectResult = result as ObjectResult;
+        objectResult!.StatusCode.Should().Be(500);
+        var problemDetails = objectResult.Value as ProblemDetails;
+        problemDetails.Should().NotBeNull();
+        problemDetails!.Title.Should().Be("Unexpected Error");
+        problemDetails.Detail.Should().Be("Unexpected error");
+    }
+
+    [Fact]
+    public void GetConfig_WhenInvalidOperationExceptionThrown_ReturnsInternalServerError()
+    {
+        // Arrange
+        var mockService = CreateMockConfigService();
+        mockService.Setup(s => s.GetConfig()).Throws(new InvalidOperationException("Configuration error"));
+        var controller = new ConfigController(mockService.Object);
+
+        // Act
+        var result = controller.GetConfig();
+
+        // Assert
+        result.Should().BeOfType<ObjectResult>();
+        var objectResult = result as ObjectResult;
+        objectResult!.StatusCode.Should().Be(500);
+        var problemDetails = objectResult.Value as ProblemDetails;
+        problemDetails.Should().NotBeNull();
+        problemDetails!.Title.Should().Be("Configuration Error");
+        problemDetails.Detail.Should().Be("Configuration error");
+    }
+
+    [Fact]
+    public void GetConfig_WhenUnexpectedExceptionThrown_ReturnsInternalServerError()
+    {
+        // Arrange
+        var mockService = CreateMockConfigService();
+        mockService.Setup(s => s.GetConfig()).Throws(new Exception("Unexpected error"));
+        var controller = new ConfigController(mockService.Object);
+
+        // Act
+        var result = controller.GetConfig();
+
+        // Assert
+        result.Should().BeOfType<ObjectResult>();
+        var objectResult = result as ObjectResult;
+        objectResult!.StatusCode.Should().Be(500);
+        var problemDetails = objectResult.Value as ProblemDetails;
+        problemDetails.Should().NotBeNull();
+        problemDetails!.Title.Should().Be("Unexpected Error");
+        problemDetails.Detail.Should().Be("Unexpected error");
     }
 }

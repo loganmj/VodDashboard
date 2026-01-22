@@ -11,26 +11,51 @@ public class ConfigController(ConfigService configService) : ControllerBase
     [HttpGet]
     public IActionResult GetConfig()
     {
-        var config = configService.GetConfig();
-        if (config == null)
-            return NotFound();
+        try
+        {
+            var config = configService.GetConfig();
+            if (config == null)
+                return NotFound();
 
-        return Ok(config);
+            return Ok(config);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Configuration Error",
+                detail: ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Unexpected Error",
+                detail: ex.Message);
+        }
     }
 
     [HttpPost]
     public IActionResult SaveConfig([FromBody] ConfigDto config)
     {
-        if (config == null)
-            return BadRequest("Config data must be provided.");
-
-        var saveSuccessful = configService.SaveConfig(config);
-        if (!saveSuccessful)
+        try
+        {
+            configService.SaveConfig(config);
+            return Ok();
+        }
+        catch (InvalidOperationException ex)
+        {
             return Problem(
                 statusCode: StatusCodes.Status500InternalServerError,
-                title: "Save Failed",
-                detail: "Failed to save config");
-
-        return Ok();
+                title: "Configuration Error",
+                detail: ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Unexpected Error",
+                detail: ex.Message);
+        }
     }
 }

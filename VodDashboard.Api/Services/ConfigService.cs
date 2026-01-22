@@ -21,10 +21,10 @@ public class ConfigService
     public virtual ConfigDto? GetConfig()
     {
         if (string.IsNullOrWhiteSpace(_settings.ConfigFile))
-            throw new InvalidOperationException("Config file path is not configured.");
+            throw new InvalidOperationException("Pipeline configuration file path is not configured.");
 
         if (!File.Exists(_settings.ConfigFile))
-            throw new InvalidOperationException($"Config file '{_settings.ConfigFile}' does not exist.");
+            return null;
 
         try
         {
@@ -33,18 +33,22 @@ public class ConfigService
         }
         catch (JsonException ex)
         {
-            throw new InvalidOperationException($"Config file '{_settings.ConfigFile}' contains invalid JSON.", ex);
+            throw new InvalidOperationException(
+                $"Failed to deserialize configuration file at '{_settings.ConfigFile}'.",
+                ex);
         }
         catch (IOException ex)
         {
-            throw new InvalidOperationException($"Error reading config file '{_settings.ConfigFile}'.", ex);
+            throw new InvalidOperationException(
+                $"Failed to read configuration file at '{_settings.ConfigFile}'.",
+                ex);
         }
     }
 
-    public virtual bool SaveConfig(ConfigDto config)
+    public virtual void SaveConfig(ConfigDto config)
     {
         if (string.IsNullOrWhiteSpace(_settings.ConfigFile))
-            throw new InvalidOperationException("Config file path is not configured.");
+            throw new InvalidOperationException("Pipeline configuration file path is not configured.");
 
         try
         {
@@ -54,20 +58,24 @@ public class ConfigService
             string tempPath = _settings.ConfigFile + ".tmp";
             File.WriteAllText(tempPath, json);
             File.Move(tempPath, _settings.ConfigFile, overwrite: true);
-
-            return true;
         }
         catch (JsonException ex)
         {
-            throw new InvalidOperationException("Failed to serialize config for saving.", ex);
+            throw new InvalidOperationException(
+                "Failed to serialize pipeline configuration.",
+                ex);
         }
         catch (IOException ex)
         {
-            throw new InvalidOperationException($"Error writing config file '{_settings.ConfigFile}'.", ex);
+            throw new InvalidOperationException(
+                $"Failed to write configuration file at '{_settings.ConfigFile}'.",
+                ex);
         }
         catch (UnauthorizedAccessException ex)
         {
-            throw new InvalidOperationException($"Access denied when writing config file '{_settings.ConfigFile}'.", ex);
+            throw new InvalidOperationException(
+                $"Insufficient permissions to write configuration file at '{_settings.ConfigFile}'.",
+                ex);
         }
     }
 }

@@ -32,7 +32,7 @@ public class ConfigServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetConfig_WhenConfigFileIsNull_ReturnsNull()
+    public void GetConfig_WhenConfigFileIsNull_ThrowsInvalidOperationException()
     {
         // Arrange
         var settings = Options.Create(new PipelineSettings
@@ -44,14 +44,15 @@ public class ConfigServiceTests : IDisposable
         var service = new ConfigService(settings);
 
         // Act
-        var result = service.GetConfig();
+        Action act = () => service.GetConfig();
 
         // Assert
-        result.Should().BeNull();
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("Pipeline configuration file path is not configured.");
     }
 
     [Fact]
-    public void GetConfig_WhenConfigFileIsEmpty_ReturnsNull()
+    public void GetConfig_WhenConfigFileIsEmpty_ThrowsInvalidOperationException()
     {
         // Arrange
         var settings = Options.Create(new PipelineSettings
@@ -63,14 +64,15 @@ public class ConfigServiceTests : IDisposable
         var service = new ConfigService(settings);
 
         // Act
-        var result = service.GetConfig();
+        Action act = () => service.GetConfig();
 
         // Assert
-        result.Should().BeNull();
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("Pipeline configuration file path is not configured.");
     }
 
     [Fact]
-    public void GetConfig_WhenConfigFileIsWhitespace_ReturnsNull()
+    public void GetConfig_WhenConfigFileIsWhitespace_ThrowsInvalidOperationException()
     {
         // Arrange
         var settings = Options.Create(new PipelineSettings
@@ -82,10 +84,11 @@ public class ConfigServiceTests : IDisposable
         var service = new ConfigService(settings);
 
         // Act
-        var result = service.GetConfig();
+        Action act = () => service.GetConfig();
 
         // Assert
-        result.Should().BeNull();
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("Pipeline configuration file path is not configured.");
     }
 
     [Fact]
@@ -176,7 +179,7 @@ public class ConfigServiceTests : IDisposable
     }
 
     [Fact]
-    public void SaveConfig_WhenConfigFileIsNull_ReturnsFalse()
+    public void SaveConfig_WhenConfigFileIsNull_ThrowsInvalidOperationException()
     {
         // Arrange
         var settings = Options.Create(new PipelineSettings
@@ -193,14 +196,15 @@ public class ConfigServiceTests : IDisposable
         };
 
         // Act
-        var result = service.SaveConfig(config);
+        Action act = () => service.SaveConfig(config);
 
         // Assert
-        result.Should().BeFalse();
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("Pipeline configuration file path is not configured.");
     }
 
     [Fact]
-    public void SaveConfig_WhenConfigFileIsEmpty_ReturnsFalse()
+    public void SaveConfig_WhenConfigFileIsEmpty_ThrowsInvalidOperationException()
     {
         // Arrange
         var settings = Options.Create(new PipelineSettings
@@ -217,14 +221,15 @@ public class ConfigServiceTests : IDisposable
         };
 
         // Act
-        var result = service.SaveConfig(config);
+        Action act = () => service.SaveConfig(config);
 
         // Assert
-        result.Should().BeFalse();
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("Pipeline configuration file path is not configured.");
     }
 
     [Fact]
-    public void SaveConfig_WhenConfigFileIsWhitespace_ReturnsFalse()
+    public void SaveConfig_WhenConfigFileIsWhitespace_ThrowsInvalidOperationException()
     {
         // Arrange
         var settings = Options.Create(new PipelineSettings
@@ -241,14 +246,15 @@ public class ConfigServiceTests : IDisposable
         };
 
         // Act
-        var result = service.SaveConfig(config);
+        Action act = () => service.SaveConfig(config);
 
         // Assert
-        result.Should().BeFalse();
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("Pipeline configuration file path is not configured.");
     }
 
     [Fact]
-    public void SaveConfig_WhenValidConfig_SavesFileAndReturnsTrue()
+    public void SaveConfig_WhenValidConfig_SavesFile()
     {
         // Arrange
         var configFile = Path.Combine(_testDirectory, "config.json");
@@ -270,10 +276,9 @@ public class ConfigServiceTests : IDisposable
         };
 
         // Act
-        var result = service.SaveConfig(config);
+        service.SaveConfig(config);
 
         // Assert
-        result.Should().BeTrue();
         File.Exists(configFile).Should().BeTrue();
 
         // Verify file content
@@ -313,11 +318,9 @@ public class ConfigServiceTests : IDisposable
 
         // Act
         service.SaveConfig(config1);
-        var result = service.SaveConfig(config2);
+        service.SaveConfig(config2);
 
         // Assert
-        result.Should().BeTrue();
-        
         // Verify the second config overwrote the first
         var savedConfig = service.GetConfig();
         savedConfig.Should().NotBeNull();
@@ -326,7 +329,7 @@ public class ConfigServiceTests : IDisposable
     }
 
     [Fact]
-    public void SaveConfig_WhenDirectoryDoesNotExist_ReturnsFalse()
+    public void SaveConfig_WhenDirectoryDoesNotExist_ThrowsInvalidOperationException()
     {
         // Arrange
         var nonExistentDirectory = Path.Combine(_testDirectory, "nonexistent", "subdir");
@@ -345,10 +348,10 @@ public class ConfigServiceTests : IDisposable
         };
 
         // Act
-        var result = service.SaveConfig(config);
+        Action act = () => service.SaveConfig(config);
 
         // Assert
-        result.Should().BeFalse();
+        act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]
@@ -371,10 +374,9 @@ public class ConfigServiceTests : IDisposable
         };
 
         // Act
-        var result = service.SaveConfig(config);
+        service.SaveConfig(config);
 
         // Assert
-        result.Should().BeTrue();
         File.Exists(configFile).Should().BeTrue();
         // Temp file should be cleaned up after atomic write
         File.Exists(tempFile).Should().BeFalse();
@@ -417,7 +419,7 @@ public class ConfigServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetConfig_WhenConfigFileHasInvalidJson_ReturnsNull()
+    public void GetConfig_WhenConfigFileHasInvalidJson_ThrowsInvalidOperationException()
     {
         // Arrange
         var configFile = Path.Combine(_testDirectory, "invalid.json");
@@ -432,9 +434,10 @@ public class ConfigServiceTests : IDisposable
         var service = new ConfigService(settings);
 
         // Act
-        var result = service.GetConfig();
+        Action act = () => service.GetConfig();
 
         // Assert
-        result.Should().BeNull();
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage($"Failed to deserialize configuration file at '{configFile}'.");
     }
 }
