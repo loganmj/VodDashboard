@@ -5,5 +5,5 @@ namespace VodDashboard.Api.DTO
         string? CurrentFile,
         string? Stage,
         int? Percent,
-        DateTime? LastUpdated);
+        DateTimeOffset? LastUpdated);
 }
