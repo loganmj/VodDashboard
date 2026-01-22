@@ -31,6 +31,46 @@ public class StatusServiceTests : IDisposable
     }
 
     [Fact]
+    public void GetStatus_WhenOutputDirectoryIsEmpty_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = string.Empty,
+            ConfigFile = "/some/config"
+        });
+        var service = new StatusService(settings);
+
+        // Act
+        Action act = () => service.GetStatus();
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("PipelineSettings.OutputDirectory is not configured.");
+    }
+
+    [Fact]
+    public void GetStatus_WhenOutputDirectoryIsWhitespace_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = "   ",
+            ConfigFile = "/some/config"
+        });
+        var service = new StatusService(settings);
+
+        // Act
+        Action act = () => service.GetStatus();
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("PipelineSettings.OutputDirectory is not configured.");
+    }
+
+    [Fact]
     public void GetStatus_WhenLogFileDoesNotExist_ReturnsNotRunning()
     {
         // Arrange
@@ -262,7 +302,7 @@ public class StatusServiceTests : IDisposable
         result.CurrentFile.Should().BeNull();
         result.Stage.Should().BeNull();
         result.Percent.Should().BeNull();
-        result.LastUpdated.Should().NotBeNull();
+        result.LastUpdated.Should().BeNull();
     }
 
     [Fact]
@@ -360,5 +400,29 @@ public class StatusServiceTests : IDisposable
         result.IsRunning.Should().BeTrue();
         result.Stage.Should().Be(string.Empty);
         result.Percent.Should().Be(25);
+    }
+
+    [Fact]
+    public void GetStatus_WhenFilenameContainsParentheses_PreservesFullFilename()
+    {
+        // Arrange
+        var logPath = Path.Combine(_testDirectory, "pipeline.log");
+        File.WriteAllText(logPath, "[2026-01-21 14:33:12] Processing file: myvideo (final).mp4");
+
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new StatusService(settings);
+
+        // Act
+        var result = service.GetStatus();
+
+        // Assert
+        result.IsRunning.Should().BeTrue();
+        result.CurrentFile.Should().Be("myvideo (final).mp4");
+        result.Stage.Should().Be("Starting");
     }
 }

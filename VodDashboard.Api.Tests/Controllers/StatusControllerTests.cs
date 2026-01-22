@@ -70,6 +70,27 @@ public class StatusControllerTests
     }
 
     [Fact]
+    public void GetStatus_WhenInvalidOperationExceptionThrown_ReturnsInternalServerError()
+    {
+        // Arrange
+        var mockService = CreateMockStatusService();
+        mockService.Setup(s => s.GetStatus()).Throws(new InvalidOperationException("Configuration error"));
+        var controller = new StatusController(mockService.Object);
+
+        // Act
+        var result = controller.GetStatus();
+
+        // Assert
+        result.Should().BeOfType<ObjectResult>();
+        var objectResult = result as ObjectResult;
+        objectResult!.StatusCode.Should().Be(500);
+        var problemDetails = objectResult.Value as ProblemDetails;
+        problemDetails.Should().NotBeNull();
+        problemDetails!.Title.Should().Be("Configuration Error");
+        problemDetails.Detail.Should().Be("Configuration error");
+    }
+
+    [Fact]
     public void GetStatus_WhenUnexpectedExceptionThrown_ReturnsInternalServerError()
     {
         // Arrange
@@ -91,11 +112,12 @@ public class StatusControllerTests
     }
 
     [Fact]
-    public void GetStatus_WhenIOExceptionThrown_ReturnsInternalServerError()
+    public void GetStatus_WhenWrappedIOExceptionThrown_ReturnsInternalServerError()
     {
         // Arrange
         var mockService = CreateMockStatusService();
-        mockService.Setup(s => s.GetStatus()).Throws(new IOException("File access error"));
+        var innerException = new IOException("File access error");
+        mockService.Setup(s => s.GetStatus()).Throws(new InvalidOperationException("Unable to read pipeline status log.", innerException));
         var controller = new StatusController(mockService.Object);
 
         // Act
@@ -107,7 +129,7 @@ public class StatusControllerTests
         objectResult!.StatusCode.Should().Be(500);
         var problemDetails = objectResult.Value as ProblemDetails;
         problemDetails.Should().NotBeNull();
-        problemDetails!.Title.Should().Be("Unexpected Error");
-        problemDetails.Detail.Should().Be("File access error");
+        problemDetails!.Title.Should().Be("Configuration Error");
+        problemDetails.Detail.Should().Be("Unable to read pipeline status log.");
     }
 }

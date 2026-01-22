@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using VodDashboard.Api.Models;
 using VodDashboard.Api.DTO;
@@ -17,6 +18,11 @@ public class StatusService(IOptions<PipelineSettings> settings)
 
     public virtual StatusDTO GetStatus()
     {
+        if (string.IsNullOrWhiteSpace(_settings.OutputDirectory))
+        {
+            throw new InvalidOperationException("PipelineSettings.OutputDirectory is not configured.");
+        }
+
         var logPath = Path.Combine(_settings.OutputDirectory, "pipeline.log");
 
         if (!File.Exists(logPath))
@@ -30,9 +36,21 @@ public class StatusService(IOptions<PipelineSettings> settings)
         }
 
         // Read last non-empty line
-        var lastLine = File.ReadLines(logPath)
+        string? lastLine;
+        try
+        {
+            lastLine = File.ReadLines(logPath)
                            .Reverse()
                            .FirstOrDefault(l => !string.IsNullOrWhiteSpace(l));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            throw new InvalidOperationException("Unable to read pipeline status log.", ex);
+        }
+        catch (IOException ex)
+        {
+            throw new InvalidOperationException("Unable to read pipeline status log.", ex);
+        }
 
         if (lastLine == null)
         {
@@ -56,14 +74,14 @@ public class StatusService(IOptions<PipelineSettings> settings)
         {
             return new StatusDTO(
                 IsRunning: true,
-                CurrentFile: ExtractAfter(lastLine, "Processing file:"),
+                CurrentFile: ExtractAfter(lastLine, "Processing file:", stripPercentage: false),
                 Stage: "Starting",
                 Percent: null,
                 LastUpdated: lastUpdated);
         }
         else if (lastLine.Contains("Stage:"))
         {
-            var stage = ExtractAfter(lastLine, "Stage:");
+            var stage = ExtractAfter(lastLine, "Stage:", stripPercentage: true);
             
             // Extract percent if present
             int? percent = null;
@@ -95,24 +113,31 @@ public class StatusService(IOptions<PipelineSettings> settings)
             CurrentFile: null,
             Stage: null,
             Percent: null,
-            LastUpdated: lastUpdated);
+            LastUpdated: null);
     }
 
     #endregion
 
     #region Private Methods
 
-    private static string ExtractAfter(string line, string marker)
+    private static string ExtractAfter(string line, string marker, bool stripPercentage)
     {
-        var idx = line.IndexOf(marker, StringComparison.Ordinal);
+        int idx = line.IndexOf(marker, StringComparison.Ordinal);
         if (idx < 0) return string.Empty;
-        var result = line[(idx + marker.Length)..].Trim();
+        string result = line[(idx + marker.Length)..].Trim();
         
-        // Remove percentage if present in the extracted text
-        var percentIndex = result.IndexOf('(');
-        if (percentIndex >= 0)
+        // Only strip percentage notation from stage names, not from filenames
+        if (stripPercentage)
         {
-            result = result[..percentIndex].Trim();
+            int percentIndex = result.IndexOf('(');
+            if (percentIndex >= 0)
+            {
+                string parenthetical = result[percentIndex..];
+                if (Regex.IsMatch(parenthetical, @"\(\s*\d+%\s*\)"))
+                {
+                    result = result[..percentIndex].TrimEnd();
+                }
+            }
         }
         
         return result;
@@ -122,7 +147,12 @@ public class StatusService(IOptions<PipelineSettings> settings)
     {
         // Expected format: [2026-01-21 14:33:12]
         var match = Regex.Match(line, @"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\]");
-        if (match.Success && DateTime.TryParse(match.Groups[1].Value, out var timestamp))
+        if (match.Success && DateTime.TryParseExact(
+            match.Groups[1].Value,
+            "yyyy-MM-dd HH:mm:ss",
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out var timestamp))
         {
             return timestamp;
         }

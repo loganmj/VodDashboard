@@ -15,6 +15,13 @@ public class StatusController(StatusService statusService) : ControllerBase
             var status = statusService.GetStatus();
             return Ok(status);
         }
+        catch (InvalidOperationException ex)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Configuration Error",
+                detail: ex.Message);
+        }
         catch (Exception ex)
         {
             return Problem(
