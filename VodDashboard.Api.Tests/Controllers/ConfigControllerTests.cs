@@ -26,7 +26,7 @@ public class ConfigControllerTests
     public void GetConfig_WhenConfigExists_ReturnsOkWithConfig()
     {
         // Arrange
-        var expectedConfig = new ConfigDto
+        var expectedConfig = new PipelineConfig
         {
             InputDirectory = "/input",
             OutputDirectory = "/output",
@@ -54,7 +54,7 @@ public class ConfigControllerTests
     {
         // Arrange
         var mockService = CreateMockConfigService();
-        mockService.Setup(s => s.GetConfig()).Returns((ConfigDto?)null);
+        mockService.Setup(s => s.GetConfig()).Returns((PipelineConfig?)null);
         var controller = new ConfigController(mockService.Object);
 
         // Act
@@ -69,7 +69,7 @@ public class ConfigControllerTests
     public void SaveConfig_WhenSaveSucceeds_ReturnsOk()
     {
         // Arrange
-        var config = new ConfigDto
+        var config = new PipelineConfig
         {
             InputDirectory = "/input",
             OutputDirectory = "/output",
@@ -79,7 +79,7 @@ public class ConfigControllerTests
             SilenceThreshold = -30
         };
         var mockService = CreateMockConfigService();
-        mockService.Setup(s => s.SaveConfig(It.IsAny<ConfigDto>()));
+        mockService.Setup(s => s.SaveConfig(It.IsAny<PipelineConfig>()));
         var controller = new ConfigController(mockService.Object);
 
         // Act
@@ -87,7 +87,7 @@ public class ConfigControllerTests
 
         // Assert
         result.Should().BeOfType<OkResult>();
-        mockService.Verify(s => s.SaveConfig(It.Is<ConfigDto>(c =>
+        mockService.Verify(s => s.SaveConfig(It.Is<PipelineConfig>(c =>
             c.InputDirectory == "/input" &&
             c.OutputDirectory == "/output" &&
             c.ArchiveDirectory == "/archive" &&
@@ -101,7 +101,7 @@ public class ConfigControllerTests
     public void SaveConfig_WithMinimalConfig_CallsServiceWithCorrectData()
     {
         // Arrange
-        var config = new ConfigDto
+        var config = new PipelineConfig
         {
             InputDirectory = "",
             OutputDirectory = "",
@@ -111,7 +111,7 @@ public class ConfigControllerTests
             SilenceThreshold = 0
         };
         var mockService = CreateMockConfigService();
-        mockService.Setup(s => s.SaveConfig(It.IsAny<ConfigDto>()));
+        mockService.Setup(s => s.SaveConfig(It.IsAny<PipelineConfig>()));
         var controller = new ConfigController(mockService.Object);
 
         // Act
@@ -119,7 +119,7 @@ public class ConfigControllerTests
 
         // Assert
         result.Should().BeOfType<OkResult>();
-        mockService.Verify(s => s.SaveConfig(It.Is<ConfigDto>(c =>
+        mockService.Verify(s => s.SaveConfig(It.Is<PipelineConfig>(c =>
             c.InputDirectory == "" &&
             c.OutputDirectory == "" &&
             c.ArchiveDirectory == "" &&
@@ -133,7 +133,7 @@ public class ConfigControllerTests
     public void SaveConfig_WithCompleteConfig_CallsServiceWithCorrectData()
     {
         // Arrange
-        var config = new ConfigDto
+        var config = new PipelineConfig
         {
             InputDirectory = "/complete/input",
             OutputDirectory = "/complete/output",
@@ -143,7 +143,7 @@ public class ConfigControllerTests
             SilenceThreshold = -40
         };
         var mockService = CreateMockConfigService();
-        mockService.Setup(s => s.SaveConfig(It.IsAny<ConfigDto>()));
+        mockService.Setup(s => s.SaveConfig(It.IsAny<PipelineConfig>()));
         var controller = new ConfigController(mockService.Object);
 
         // Act
@@ -151,7 +151,7 @@ public class ConfigControllerTests
 
         // Assert
         result.Should().BeOfType<OkResult>();
-        mockService.Verify(s => s.SaveConfig(It.Is<ConfigDto>(c =>
+        mockService.Verify(s => s.SaveConfig(It.Is<PipelineConfig>(c =>
             c.InputDirectory == "/complete/input" &&
             c.OutputDirectory == "/complete/output" &&
             c.ArchiveDirectory == "/complete/archive" &&
@@ -165,13 +165,13 @@ public class ConfigControllerTests
     public void SaveConfig_WhenInvalidOperationExceptionThrown_ReturnsInternalServerError()
     {
         // Arrange
-        var config = new ConfigDto
+        var config = new PipelineConfig
         {
             InputDirectory = "/input",
             OutputDirectory = "/output"
         };
         var mockService = CreateMockConfigService();
-        mockService.Setup(s => s.SaveConfig(It.IsAny<ConfigDto>())).Throws(new InvalidOperationException("Configuration error"));
+        mockService.Setup(s => s.SaveConfig(It.IsAny<PipelineConfig>())).Throws(new InvalidOperationException("Configuration error"));
         var controller = new ConfigController(mockService.Object);
 
         // Act
@@ -191,13 +191,13 @@ public class ConfigControllerTests
     public void SaveConfig_WhenUnexpectedExceptionThrown_ReturnsInternalServerError()
     {
         // Arrange
-        var config = new ConfigDto
+        var config = new PipelineConfig
         {
             InputDirectory = "/input",
             OutputDirectory = "/output"
         };
         var mockService = CreateMockConfigService();
-        mockService.Setup(s => s.SaveConfig(It.IsAny<ConfigDto>())).Throws(new Exception("Unexpected error"));
+        mockService.Setup(s => s.SaveConfig(It.IsAny<PipelineConfig>())).Throws(new Exception("Unexpected error"));
         var controller = new ConfigController(mockService.Object);
 
         // Act
