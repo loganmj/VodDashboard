@@ -82,4 +82,69 @@ public class RawControllerTests
         problemDetails!.Title.Should().Be("Configuration Error");
         problemDetails.Detail.Should().Be("Configuration error");
     }
+
+    [Fact]
+    public void GetRawFiles_WhenWrappedUnauthorizedAccessExceptionThrown_ReturnsInternalServerError()
+    {
+        // Arrange
+        var mockService = CreateMockRawFileService();
+        var innerException = new UnauthorizedAccessException("Access denied");
+        mockService.Setup(s => s.GetRawFiles()).Throws(new InvalidOperationException("Access to the configured input directory is denied.", innerException));
+        var controller = new RawController(mockService.Object);
+
+        // Act
+        var result = controller.GetRawFiles();
+
+        // Assert
+        result.Should().BeOfType<ObjectResult>();
+        var objectResult = result as ObjectResult;
+        objectResult!.StatusCode.Should().Be(500);
+        var problemDetails = objectResult.Value as ProblemDetails;
+        problemDetails.Should().NotBeNull();
+        problemDetails!.Title.Should().Be("Configuration Error");
+        problemDetails.Detail.Should().Be("Access to the configured input directory is denied.");
+    }
+
+    [Fact]
+    public void GetRawFiles_WhenWrappedIOExceptionThrown_ReturnsInternalServerError()
+    {
+        // Arrange
+        var mockService = CreateMockRawFileService();
+        var innerException = new IOException("I/O error");
+        mockService.Setup(s => s.GetRawFiles()).Throws(new InvalidOperationException("An I/O error occurred while enumerating files in the configured input directory.", innerException));
+        var controller = new RawController(mockService.Object);
+
+        // Act
+        var result = controller.GetRawFiles();
+
+        // Assert
+        result.Should().BeOfType<ObjectResult>();
+        var objectResult = result as ObjectResult;
+        objectResult!.StatusCode.Should().Be(500);
+        var problemDetails = objectResult.Value as ProblemDetails;
+        problemDetails.Should().NotBeNull();
+        problemDetails!.Title.Should().Be("Configuration Error");
+        problemDetails.Detail.Should().Be("An I/O error occurred while enumerating files in the configured input directory.");
+    }
+
+    [Fact]
+    public void GetRawFiles_WhenUnexpectedExceptionThrown_ReturnsInternalServerError()
+    {
+        // Arrange
+        var mockService = CreateMockRawFileService();
+        mockService.Setup(s => s.GetRawFiles()).Throws(new Exception("Unexpected error"));
+        var controller = new RawController(mockService.Object);
+
+        // Act
+        var result = controller.GetRawFiles();
+
+        // Assert
+        result.Should().BeOfType<ObjectResult>();
+        var objectResult = result as ObjectResult;
+        objectResult!.StatusCode.Should().Be(500);
+        var problemDetails = objectResult.Value as ProblemDetails;
+        problemDetails.Should().NotBeNull();
+        problemDetails!.Title.Should().Be("Unexpected Error");
+        problemDetails.Detail.Should().Be("Unexpected error");
+    }
 }

@@ -82,4 +82,69 @@ public class JobControllerTests
         problemDetails!.Title.Should().Be("Configuration Error");
         problemDetails.Detail.Should().Be("Configuration error");
     }
+
+    [Fact]
+    public async Task GetJobs_WhenWrappedUnauthorizedAccessExceptionThrown_ReturnsInternalServerError()
+    {
+        // Arrange
+        var mockService = CreateMockJobService();
+        var innerException = new UnauthorizedAccessException("Access denied");
+        mockService.Setup(s => s.GetJobsAsync()).ThrowsAsync(new InvalidOperationException("Access to the configured output directory is denied.", innerException));
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = await controller.GetJobs();
+
+        // Assert
+        result.Should().BeOfType<ObjectResult>();
+        var objectResult = result as ObjectResult;
+        objectResult!.StatusCode.Should().Be(500);
+        var problemDetails = objectResult.Value as ProblemDetails;
+        problemDetails.Should().NotBeNull();
+        problemDetails!.Title.Should().Be("Configuration Error");
+        problemDetails.Detail.Should().Be("Access to the configured output directory is denied.");
+    }
+
+    [Fact]
+    public async Task GetJobs_WhenWrappedIOExceptionThrown_ReturnsInternalServerError()
+    {
+        // Arrange
+        var mockService = CreateMockJobService();
+        var innerException = new IOException("I/O error");
+        mockService.Setup(s => s.GetJobsAsync()).ThrowsAsync(new InvalidOperationException("An I/O error occurred while enumerating directories in the configured output directory.", innerException));
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = await controller.GetJobs();
+
+        // Assert
+        result.Should().BeOfType<ObjectResult>();
+        var objectResult = result as ObjectResult;
+        objectResult!.StatusCode.Should().Be(500);
+        var problemDetails = objectResult.Value as ProblemDetails;
+        problemDetails.Should().NotBeNull();
+        problemDetails!.Title.Should().Be("Configuration Error");
+        problemDetails.Detail.Should().Be("An I/O error occurred while enumerating directories in the configured output directory.");
+    }
+
+    [Fact]
+    public async Task GetJobs_WhenUnexpectedExceptionThrown_ReturnsInternalServerError()
+    {
+        // Arrange
+        var mockService = CreateMockJobService();
+        mockService.Setup(s => s.GetJobsAsync()).ThrowsAsync(new Exception("Unexpected error"));
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = await controller.GetJobs();
+
+        // Assert
+        result.Should().BeOfType<ObjectResult>();
+        var objectResult = result as ObjectResult;
+        objectResult!.StatusCode.Should().Be(500);
+        var problemDetails = objectResult.Value as ProblemDetails;
+        problemDetails.Should().NotBeNull();
+        problemDetails!.Title.Should().Be("Unexpected Error");
+        problemDetails.Detail.Should().Be("Unexpected error");
+    }
 }
