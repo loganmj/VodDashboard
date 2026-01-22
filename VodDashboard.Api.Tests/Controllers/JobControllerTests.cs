@@ -346,4 +346,198 @@ public class JobControllerTests
         var badRequestResult = result as BadRequestObjectResult;
         badRequestResult!.Value.Should().Be("Invalid job id.");
     }
+
+    [Fact]
+    public void GetJobLog_WhenLogExists_ReturnsContentResultWithPlainText()
+    {
+        // Arrange
+        var jobId = "test-job";
+        var logContent = "Test log content\nLine 2";
+        var mockService = CreateMockJobService();
+        mockService.Setup(s => s.GetJobLog(jobId)).Returns(logContent);
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobLog(jobId);
+
+        // Assert
+        result.Should().BeOfType<ContentResult>();
+        var contentResult = result as ContentResult;
+        contentResult!.Content.Should().Be(logContent);
+        contentResult.ContentType.Should().Be("text/plain");
+        mockService.Verify(s => s.GetJobLog(jobId), Times.Once);
+    }
+
+    [Fact]
+    public void GetJobLog_WhenLogDoesNotExist_ReturnsNotFound()
+    {
+        // Arrange
+        var jobId = "nonexistent-job";
+        var mockService = CreateMockJobService();
+        mockService.Setup(s => s.GetJobLog(jobId)).Returns((string?)null);
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobLog(jobId);
+
+        // Assert
+        result.Should().BeOfType<NotFoundResult>();
+        mockService.Verify(s => s.GetJobLog(jobId), Times.Once);
+    }
+
+    [Fact]
+    public void GetJobLog_WhenInvalidOperationExceptionThrown_ReturnsInternalServerError()
+    {
+        // Arrange
+        var jobId = "test-job";
+        var mockService = CreateMockJobService();
+        mockService.Setup(s => s.GetJobLog(jobId)).Throws(new InvalidOperationException("Configuration error"));
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobLog(jobId);
+
+        // Assert
+        result.Should().BeOfType<ObjectResult>();
+        var objectResult = result as ObjectResult;
+        objectResult!.StatusCode.Should().Be(500);
+        var problemDetails = objectResult.Value as ProblemDetails;
+        problemDetails.Should().NotBeNull();
+        problemDetails!.Title.Should().Be("Configuration Error");
+        problemDetails.Detail.Should().Be("Configuration error");
+    }
+
+    [Fact]
+    public void GetJobLog_WhenUnexpectedExceptionThrown_ReturnsInternalServerError()
+    {
+        // Arrange
+        var jobId = "test-job";
+        var mockService = CreateMockJobService();
+        mockService.Setup(s => s.GetJobLog(jobId)).Throws(new Exception("Unexpected error"));
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobLog(jobId);
+
+        // Assert
+        result.Should().BeOfType<ObjectResult>();
+        var objectResult = result as ObjectResult;
+        objectResult!.StatusCode.Should().Be(500);
+        var problemDetails = objectResult.Value as ProblemDetails;
+        problemDetails.Should().NotBeNull();
+        problemDetails!.Title.Should().Be("Unexpected Error");
+        problemDetails.Detail.Should().Be("Unexpected error");
+    }
+
+    [Fact]
+    public void GetJobLog_WhenIdIsNull_ReturnsBadRequest()
+    {
+        // Arrange
+        var mockService = CreateMockJobService();
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobLog(null!);
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+        var badRequestResult = result as BadRequestObjectResult;
+        badRequestResult!.Value.Should().Be("Job id must be provided.");
+    }
+
+    [Fact]
+    public void GetJobLog_WhenIdIsEmpty_ReturnsBadRequest()
+    {
+        // Arrange
+        var mockService = CreateMockJobService();
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobLog("");
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+        var badRequestResult = result as BadRequestObjectResult;
+        badRequestResult!.Value.Should().Be("Job id must be provided.");
+    }
+
+    [Fact]
+    public void GetJobLog_WhenIdIsWhitespace_ReturnsBadRequest()
+    {
+        // Arrange
+        var mockService = CreateMockJobService();
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobLog("   ");
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+        var badRequestResult = result as BadRequestObjectResult;
+        badRequestResult!.Value.Should().Be("Job id must be provided.");
+    }
+
+    [Fact]
+    public void GetJobLog_WhenIdContainsParentDirectoryReference_ReturnsBadRequest()
+    {
+        // Arrange
+        var mockService = CreateMockJobService();
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobLog("../parent");
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+        var badRequestResult = result as BadRequestObjectResult;
+        badRequestResult!.Value.Should().Be("Invalid job id.");
+    }
+
+    [Fact]
+    public void GetJobLog_WhenIdContainsPathTraversal_ReturnsBadRequest()
+    {
+        // Arrange
+        var mockService = CreateMockJobService();
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobLog("../../etc/passwd");
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+        var badRequestResult = result as BadRequestObjectResult;
+        badRequestResult!.Value.Should().Be("Invalid job id.");
+    }
+
+    [Fact]
+    public void GetJobLog_WhenIdContainsDirectorySeparator_ReturnsBadRequest()
+    {
+        // Arrange
+        var mockService = CreateMockJobService();
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobLog("folder/subdir");
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+        var badRequestResult = result as BadRequestObjectResult;
+        badRequestResult!.Value.Should().Be("Invalid job id.");
+    }
+
+    [Fact]
+    public void GetJobLog_WhenIdContainsForwardSlash_ReturnsBadRequest()
+    {
+        // Arrange
+        var mockService = CreateMockJobService();
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobLog("job/test");
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+        var badRequestResult = result as BadRequestObjectResult;
+        badRequestResult!.Value.Should().Be("Invalid job id.");
+    }
 }

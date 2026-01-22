@@ -751,4 +751,245 @@ public class JobServiceTests : IDisposable
         DateTimeOffset expectedCreated = new DateTimeOffset(jobDirInfo.CreationTimeUtc);
         result.Created.Should().BeCloseTo(expectedCreated, TimeSpan.FromSeconds(5));
     }
+
+    [Fact]
+    public void GetJobLog_WhenOutputDirectoryIsEmpty_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = string.Empty,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        Action act = () => service.GetJobLog("job1");
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("PipelineSettings.OutputDirectory is not configured.");
+    }
+
+    [Fact]
+    public void GetJobLog_WhenOutputDirectoryIsWhitespace_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = "   ",
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        Action act = () => service.GetJobLog("job1");
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("PipelineSettings.OutputDirectory is not configured.");
+    }
+
+    [Fact]
+    public void GetJobLog_WhenJobDoesNotExist_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobLog("nonexistent-job");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobLog_WhenIdIsNull_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobLog(null!);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobLog_WhenIdIsEmpty_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobLog("");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobLog_WhenIdIsWhitespace_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobLog("   ");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobLog_WhenIdContainsParentDirectoryReference_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobLog("../parent");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobLog_WhenIdContainsPathTraversal_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobLog("../../etc/passwd");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobLog_WhenIdContainsDirectorySeparator_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobLog("folder/subdir");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobLog_WhenIdContainsForwardSlash_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobLog("job/test");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobLog_WhenLogFileDoesNotExist_ReturnsNull()
+    {
+        // Arrange
+        var jobId = "job-without-log";
+        var jobDir = Path.Combine(_testDirectory, jobId);
+        Directory.CreateDirectory(jobDir);
+
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobLog(jobId);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobLog_WhenLogFileExists_ReturnsLogContent()
+    {
+        // Arrange
+        var jobId = "job-with-log";
+        var jobDir = Path.Combine(_testDirectory, jobId);
+        Directory.CreateDirectory(jobDir);
+        var logPath = Path.Combine(jobDir, "log.txt");
+        var logContent = "Test log content\nLine 2\nLine 3";
+        File.WriteAllText(logPath, logContent);
+
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobLog(jobId);
+
+        // Assert
+        result.Should().Be(logContent);
+    }
 }

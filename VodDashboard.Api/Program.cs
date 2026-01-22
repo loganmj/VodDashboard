@@ -8,6 +8,7 @@ builder.Services.Configure<PipelineSettings>(builder.Configuration.GetSection("P
 builder.Services.AddSingleton<RawFileService>();
 builder.Services.AddSingleton<JobService>();
 builder.Services.AddSingleton<StatusService>();
+builder.Services.AddSingleton<ConfigService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
