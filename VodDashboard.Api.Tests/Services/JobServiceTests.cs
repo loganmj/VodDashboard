@@ -31,7 +31,7 @@ public class JobServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetJobs_WhenOutputDirectoryIsEmpty_ReturnsEmptyCollection()
+    public async Task GetJobs_WhenOutputDirectoryIsEmpty_ThrowsInvalidOperationException()
     {
         // Arrange
         var settings = Options.Create(new PipelineSettings
@@ -43,14 +43,15 @@ public class JobServiceTests : IDisposable
         var service = new JobService(settings);
 
         // Act
-        var result = await service.GetJobsAsync();
+        Func<Task> act = async () => await service.GetJobsAsync();
 
         // Assert
-        result.Should().BeEmpty();
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("PipelineSettings.OutputDirectory is not configured.");
     }
 
     [Fact]
-    public async Task GetJobs_WhenOutputDirectoryIsWhitespace_ReturnsEmptyCollection()
+    public async Task GetJobs_WhenOutputDirectoryIsWhitespace_ThrowsInvalidOperationException()
     {
         // Arrange
         var settings = Options.Create(new PipelineSettings
@@ -62,10 +63,11 @@ public class JobServiceTests : IDisposable
         var service = new JobService(settings);
 
         // Act
-        var result = await service.GetJobsAsync();
+        Func<Task> act = async () => await service.GetJobsAsync();
 
         // Assert
-        result.Should().BeEmpty();
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("PipelineSettings.OutputDirectory is not configured.");
     }
 
     [Fact]

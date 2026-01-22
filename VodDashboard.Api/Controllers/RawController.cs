@@ -24,19 +24,5 @@ public class RawController(RawFileService rawService) : ControllerBase
                 title: "Configuration Error",
                 detail: ex.Message);
         }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Problem(
-                statusCode: StatusCodes.Status403Forbidden,
-                title: "Access denied to raw files",
-                detail: ex.Message);
-        }
-        catch (IOException ex)
-        {
-            return Problem(
-                statusCode: StatusCodes.Status500InternalServerError,
-                title: "I/O error while retrieving raw files",
-                detail: ex.Message);
-        }
     }
 }
