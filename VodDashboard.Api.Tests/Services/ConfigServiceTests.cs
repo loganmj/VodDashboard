@@ -495,7 +495,7 @@ public class ConfigServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetCachedConfig_AfterSaveConfig_ReturnsUpdatedConfig()
+    public void GetCachedConfig_AfterSaveConfig_CacheRemainsUnchanged()
     {
         // Arrange
         var configFile = Path.Combine(_testDirectory, "config.json");
@@ -525,9 +525,14 @@ public class ConfigServiceTests : IDisposable
 
         var result = service.GetCachedConfig();
 
-        // Assert
-        result.Should().BeSameAs(newConfig);
-        result.InputDirectory.Should().Be("/new/input");
-        result.OutputDirectory.Should().Be("/new/output");
+        // Assert - Cache remains unchanged until restart
+        result.Should().BeSameAs(initialConfig);
+        result.InputDirectory.Should().Be("/old/input");
+        result.OutputDirectory.Should().Be("/old/output");
+
+        // Verify file was updated even though cache wasn't
+        var savedConfig = service.GetConfig();
+        savedConfig!.InputDirectory.Should().Be("/new/input");
+        savedConfig.OutputDirectory.Should().Be("/new/output");
     }
 }

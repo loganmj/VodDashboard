@@ -5,23 +5,25 @@ using VodDashboard.Api.Models;
 
 namespace VodDashboard.Api.Services;
 
-public class ConfigService(IOptions<PipelineSettings> settings)
+public class ConfigService
 {
-    private readonly PipelineSettings _settings = settings.Value;
-    private PipelineConfig? _cachedConfig;
+    private readonly PipelineSettings _settings;
+    private readonly Lazy<PipelineConfig> _cachedConfig;
 
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
         WriteIndented = true
     };
 
+    public ConfigService(IOptions<PipelineSettings> settings)
+    {
+        _settings = settings.Value;
+        _cachedConfig = new Lazy<PipelineConfig>(GetConfigOrDefault);
+    }
+
     public virtual PipelineConfig GetCachedConfig()
     {
-        if (_cachedConfig == null)
-        {
-            _cachedConfig = GetConfigOrDefault();
-        }
-        return _cachedConfig;
+        return _cachedConfig.Value;
     }
 
     private PipelineConfig GetConfigOrDefault()
@@ -36,7 +38,7 @@ public class ConfigService(IOptions<PipelineSettings> settings)
         return GetConfig() ?? GetDefaultConfig();
     }
 
-    private static PipelineConfig GetDefaultConfig()
+    public static PipelineConfig GetDefaultConfig()
     {
         return new PipelineConfig
         {
@@ -96,8 +98,8 @@ public class ConfigService(IOptions<PipelineSettings> settings)
             File.WriteAllText(tempPath, json);
             File.Move(tempPath, _settings.ConfigFile, overwrite: true);
 
-            // Update cached config
-            _cachedConfig = config;
+            // Note: Cache is not updated here as it's immutable via Lazy<T>
+            // The cached value will persist until the application restarts
         }
         catch (JsonException ex)
         {

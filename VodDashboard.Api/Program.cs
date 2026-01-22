@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using VodDashboard.Api.Models;
 using VodDashboard.Api.Services;
 
@@ -21,13 +22,27 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var configService = scope.ServiceProvider.GetRequiredService<ConfigService>();
+    var pipelineSettings = scope.ServiceProvider.GetRequiredService<IOptions<PipelineSettings>>();
     
     try
     {
         // Preload and cache the configuration
-        // This will either load from the Functions config file or use defaults
         var config = configService.GetCachedConfig();
-        app.Logger.LogInformation("Pipeline configuration loaded successfully from Functions config file");
+        
+        // Log appropriate message based on how config was loaded
+        if (string.IsNullOrWhiteSpace(pipelineSettings.Value.ConfigFile))
+        {
+            app.Logger.LogInformation("No Functions config file configured. Using default pipeline configuration.");
+        }
+        else if (!File.Exists(pipelineSettings.Value.ConfigFile))
+        {
+            app.Logger.LogWarning("Functions config file not found at '{ConfigFile}'. Using default pipeline configuration.", pipelineSettings.Value.ConfigFile);
+        }
+        else
+        {
+            app.Logger.LogInformation("Pipeline configuration loaded successfully from Functions config file: {ConfigFile}", pipelineSettings.Value.ConfigFile);
+        }
+        
         app.Logger.LogInformation("  Input Directory: {InputDirectory}", config.InputDirectory);
         app.Logger.LogInformation("  Output Directory: {OutputDirectory}", config.OutputDirectory);
     }
