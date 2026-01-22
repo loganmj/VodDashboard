@@ -604,8 +604,8 @@ public class JobServiceTests : IDisposable
         result.Should().NotBeNull();
         result!.Id.Should().Be(jobId);
         result.HasCleanVideo.Should().BeFalse();
-        result.Highlights.Should().BeEmpty();
-        result.Scenes.Should().BeEmpty();
+        result.HighlightCount.Should().Be(0);
+        result.SceneCount.Should().Be(0);
     }
 
     [Fact]
@@ -661,11 +661,7 @@ public class JobServiceTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.Highlights.Should().HaveCount(3);
-        result.Highlights.Should().Contain("highlight1.mp4");
-        result.Highlights.Should().Contain("highlight2.mp4");
-        result.Highlights.Should().Contain("highlight3.mp4");
-        result.Highlights.Should().NotContain("readme.txt");
+        result!.HighlightCount.Should().Be(3);
     }
 
     [Fact]
@@ -694,10 +690,7 @@ public class JobServiceTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.Scenes.Should().HaveCount(2);
-        result.Scenes.Should().Contain("scene1.csv");
-        result.Scenes.Should().Contain("scene2.csv");
-        result.Scenes.Should().NotContain("readme.txt");
+        result!.SceneCount.Should().Be(2);
     }
 
     [Fact]
@@ -740,15 +733,10 @@ public class JobServiceTests : IDisposable
         result.Should().NotBeNull();
         result!.Id.Should().Be(jobId);
         result.HasCleanVideo.Should().BeTrue();
-        result.Highlights.Should().HaveCount(2);
-        result.Highlights.Should().Contain("h1.mp4");
-        result.Highlights.Should().Contain("h2.mp4");
-        result.Scenes.Should().HaveCount(3);
-        result.Scenes.Should().Contain("s1.csv");
-        result.Scenes.Should().Contain("s2.csv");
-        result.Scenes.Should().Contain("s3.csv");
-        DirectoryInfo jobDirInfo = new DirectoryInfo(jobDir);
-        DateTimeOffset expectedCreated = new DateTimeOffset(jobDirInfo.CreationTimeUtc);
+        result.HighlightCount.Should().Be(2);
+        result.SceneCount.Should().Be(3);
+        DirectoryInfo jobDirInfo = new(jobDir);
+        DateTimeOffset expectedCreated = new(jobDirInfo.CreationTimeUtc);
         result.Created.Should().BeCloseTo(expectedCreated, TimeSpan.FromSeconds(5));
     }
 

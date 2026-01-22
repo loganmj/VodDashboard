@@ -1,9 +1,9 @@
 namespace VodDashboard.Api.DTO
 {
-    public record JobDetailDto(
+    public record JobData(
         string Id,
         bool HasCleanVideo,
-        IReadOnlyList<string> Highlights,
-        IReadOnlyList<string> Scenes,
+        int HighlightCount,
+        int SceneCount,
         DateTimeOffset Created);
 }

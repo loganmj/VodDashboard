@@ -5,16 +5,11 @@ using VodDashboard.Api.Models;
 
 namespace VodDashboard.Api.Services;
 
-public class JobService
+public class JobService(IOptions<PipelineSettings> settings)
 {
-    private readonly PipelineSettings _settings;
+    private readonly PipelineSettings _settings = settings.Value;
 
-    public JobService(IOptions<PipelineSettings> settings)
-    {
-        _settings = settings.Value;
-    }
-
-    public virtual async Task<IEnumerable<JobSummaryDTO>> GetJobsAsync()
+    public virtual async Task<IEnumerable<JobData>> GetJobsAsync()
     {
         if (string.IsNullOrWhiteSpace(_settings.OutputDirectory))
         {
@@ -25,7 +20,7 @@ public class JobService
 
         if (!dir.Exists)
         {
-            return Enumerable.Empty<JobSummaryDTO>();
+            return [];
         }
 
         try
@@ -44,7 +39,7 @@ public class JobService
         }
     }
 
-    public virtual JobDetailDto? GetJobDetail(string id)
+    public virtual JobData? GetJobDetail(string id)
     {
         if (string.IsNullOrWhiteSpace(_settings.OutputDirectory))
         {
@@ -57,11 +52,13 @@ public class JobService
         }
 
         // Use Path.GetFileName to ensure we only get the filename component
-        var safeId = Validation.SanitizeJobId(id);
-        var jobDir = new DirectoryInfo(Path.Combine(_settings.OutputDirectory, safeId));
+        string safeId = Validation.SanitizeJobId(id);
+        DirectoryInfo jobDir = new(Path.Combine(_settings.OutputDirectory, safeId));
 
         if (!jobDir.Exists)
+        {
             return null;
+        }
 
         try
         {
@@ -69,27 +66,25 @@ public class JobService
             var highlightsDir = Path.Combine(jobDir.FullName, "highlights");
             var scenesDir = Path.Combine(jobDir.FullName, "scenes");
 
-            var highlights = Directory.Exists(highlightsDir)
-                ? Directory.GetFiles(highlightsDir, "*.mp4")
+            List<string> highlights = Directory.Exists(highlightsDir)
+                ? [.. Directory.GetFiles(highlightsDir, "*.mp4")
                           .Select(Path.GetFileName)
                           .Where(name => !string.IsNullOrEmpty(name))
-                          .Cast<string>()
-                          .ToList()
-                : new List<string>();
+                          .Cast<string>()]
+                : [];
 
-            var scenes = Directory.Exists(scenesDir)
-                ? Directory.GetFiles(scenesDir, "*.csv")
+            List<string> scenes = Directory.Exists(scenesDir)
+                ? [.. Directory.GetFiles(scenesDir, "*.csv")
                           .Select(Path.GetFileName)
                           .Where(name => !string.IsNullOrEmpty(name))
-                          .Cast<string>()
-                          .ToList()
-                : new List<string>();
+                          .Cast<string>()]
+                : [];
 
-            return new JobDetailDto(
+            return new JobData(
                 Id: safeId,
                 HasCleanVideo: File.Exists(cleanPath),
-                Highlights: highlights,
-                Scenes: scenes,
+                HighlightCount: highlights.Count,
+                SceneCount: scenes.Count,
                 Created: jobDir.CreationTimeUtc
             );
         }
@@ -116,16 +111,20 @@ public class JobService
         }
 
         // Use Path.GetFileName to ensure we only get the filename component
-        var safeId = Validation.SanitizeJobId(id);
-        var jobDir = Path.Combine(_settings.OutputDirectory, safeId);
+        string safeId = Validation.SanitizeJobId(id);
+        string jobDir = Path.Combine(_settings.OutputDirectory, safeId);
 
         if (!Directory.Exists(jobDir))
+        {
             return null;
+        }
 
         var logPath = Path.Combine(jobDir, "log.txt");
 
         if (!File.Exists(logPath))
+        {
             return null;
+        }
 
         try
         {
@@ -141,15 +140,16 @@ public class JobService
         }
     }
 
-    private Task<JobSummaryDTO> BuildJobSummaryAsync(DirectoryInfo jobDir)
+    private Task<JobData> BuildJobSummaryAsync(DirectoryInfo jobDir)
     {
         try
         {
-            var cleanPath = Path.Combine(jobDir.FullName, "clean.mp4");
-            var highlightsDir = Path.Combine(jobDir.FullName, "highlights");
-            var scenesDir = Path.Combine(jobDir.FullName, "scenes");
+            string cleanPath = Path.Combine(jobDir.FullName, "clean.mp4");
+            string highlightsDir = Path.Combine(jobDir.FullName, "highlights");
+            string scenesDir = Path.Combine(jobDir.FullName, "scenes");
 
             var highlightCount = 0;
+
             if (Directory.Exists(highlightsDir))
             {
                 highlightCount = Directory.GetFiles(highlightsDir, "*.mp4").Length;
@@ -163,7 +163,7 @@ public class JobService
 
             var hasCleanVideo = File.Exists(cleanPath);
 
-            return Task.FromResult(new JobSummaryDTO(
+            return Task.FromResult(new JobData(
                 Id: jobDir.Name,
                 HasCleanVideo: hasCleanVideo,
                 HighlightCount: highlightCount,
