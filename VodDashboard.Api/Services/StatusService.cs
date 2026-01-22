@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Options;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using VodDashboard.Api.Models;
 using VodDashboard.Api.DTO;
+using VodDashboard.Api.Models;
 
 namespace VodDashboard.Api.Services;
 
@@ -57,7 +57,7 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
         }
 
         // Parse timestamp from log line if present
-        DateTime? lastUpdated = ParseTimestamp(lastLine);
+        DateTimeOffset? lastUpdated = ParseTimestamp(lastLine);
 
         // Example log formats:
         // [2026-01-21 14:33:12] Processing file: myvideo.mp4
@@ -66,17 +66,16 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
 
         if (lastLine.Contains("Processing file:"))
         {
-            return new JobStatus(
-                IsRunning: true,
-                CurrentFile: ExtractAfter(lastLine, "Processing file:", stripPercentage: false),
-                Stage: "Starting",
-                Percent: null,
-                LastUpdated: lastUpdated);
+            return new JobStatus(IsRunning: true,
+                                 CurrentFile: ExtractAfter(lastLine, "Processing file:", stripPercentage: false),
+                                 Stage: "Starting",
+                                 Percent: null,
+                                 LastUpdated: lastUpdated);
         }
         else if (lastLine.Contains("Stage:"))
         {
             var stage = ExtractAfter(lastLine, "Stage:", stripPercentage: true);
-            
+
             // Extract percent if present
             int? percent = null;
             var percentMatch = PercentExtractPattern().Match(lastLine);
@@ -122,7 +121,7 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
     {
         const int bufferSize = 4096;
         using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-        
+
         if (fileStream.Length == 0)
         {
             return null;
@@ -131,13 +130,13 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
         var buffer = new byte[bufferSize];
         var position = fileStream.Length;
         var currentLine = new List<byte>();
-        
+
         while (position > 0)
         {
             var bytesToRead = (int)Math.Min(bufferSize, position);
             position -= bytesToRead;
             fileStream.Seek(position, SeekOrigin.Begin);
-            
+
             int bytesRead = 0;
             while (bytesRead < bytesToRead)
             {
@@ -148,12 +147,12 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
                 }
                 bytesRead += read;
             }
-            
+
             // Process bytes in reverse order
             for (int i = bytesRead - 1; i >= 0; i--)
             {
                 byte b = buffer[i];
-                
+
                 if (b == '\n' || b == '\r')
                 {
                     if (currentLine.Count > 0)
@@ -173,7 +172,7 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
                 }
             }
         }
-        
+
         // Handle the first line (or single line file)
         if (currentLine.Count > 0)
         {
@@ -184,7 +183,7 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
                 return line;
             }
         }
-        
+
         return null;
     }
 
@@ -202,7 +201,7 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
         int idx = line.IndexOf(marker, StringComparison.Ordinal);
         if (idx < 0) return string.Empty;
         string result = line[(idx + marker.Length)..].Trim();
-        
+
         // Only strip percentage notation from stage names, not from filenames
         if (stripPercentage)
         {
@@ -213,7 +212,7 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
                 result = trimmedResult[..match.Index].TrimEnd();
             }
         }
-        
+
         return result;
     }
 
