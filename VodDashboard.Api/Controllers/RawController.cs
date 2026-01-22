@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using VodDashboard.Api.DTO;
 using VodDashboard.Api.Services;
 
 namespace VodDashboard.Api.Controllers;
@@ -12,7 +13,7 @@ public class RawController(RawFileService rawService) : ControllerBase
     {
         try
         {
-            var files = rawService.GetRawFiles();
+            IEnumerable<RawFileDTO> files = rawService.GetRawFiles();
             return Ok(files);
         }
         catch (InvalidOperationException ex)

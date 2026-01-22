@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using VodDashboard.Api.DTO;
 using VodDashboard.Api.Services;
 
 namespace VodDashboard.Api.Controllers;
@@ -12,7 +13,7 @@ public class StatusController(StatusService statusService) : ControllerBase
     {
         try
         {
-            var status = statusService.GetStatus();
+            StatusDTO status = statusService.GetStatus();
             return Ok(status);
         }
         catch (InvalidOperationException ex)
