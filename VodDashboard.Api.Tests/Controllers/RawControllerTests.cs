@@ -28,8 +28,8 @@ public class RawControllerTests
         // Arrange
         var expectedFiles = new[]
         {
-            new RawFileDTO("video1.mp4", 1024, DateTimeOffset.UtcNow),
-            new RawFileDTO("video2.mp4", 2048, DateTimeOffset.UtcNow)
+            new RawFileMetadata("video1.mp4", 1024, DateTimeOffset.UtcNow),
+            new RawFileMetadata("video2.mp4", 2048, DateTimeOffset.UtcNow)
         };
         var mockService = CreateMockRawFileService();
         mockService.Setup(s => s.GetRawFiles()).Returns(expectedFiles);
@@ -50,7 +50,7 @@ public class RawControllerTests
     {
         // Arrange
         var mockService = CreateMockRawFileService();
-        mockService.Setup(s => s.GetRawFiles()).Returns(Enumerable.Empty<RawFileDTO>());
+        mockService.Setup(s => s.GetRawFiles()).Returns(Enumerable.Empty<RawFileMetadata>());
         var controller = new RawController(mockService.Object);
 
         // Act
@@ -59,7 +59,7 @@ public class RawControllerTests
         // Assert
         result.Should().BeOfType<OkObjectResult>();
         var okResult = result as OkObjectResult;
-        okResult!.Value.Should().BeEquivalentTo(Enumerable.Empty<RawFileDTO>());
+        okResult!.Value.Should().BeEquivalentTo(Enumerable.Empty<RawFileMetadata>());
     }
 
     [Fact]

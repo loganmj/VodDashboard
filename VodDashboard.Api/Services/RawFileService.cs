@@ -14,7 +14,7 @@ public class RawFileService(IOptions<PipelineSettings> settings)
 
     #region Public Methods
 
-    public virtual IEnumerable<RawFileDTO> GetRawFiles()
+    public virtual IEnumerable<RawFileMetadata> GetRawFiles()
     {
         if (string.IsNullOrWhiteSpace(_settings.InputDirectory))
         {
@@ -25,7 +25,7 @@ public class RawFileService(IOptions<PipelineSettings> settings)
 
         if (!dir.Exists)
         {
-            return Enumerable.Empty<RawFileDTO>();
+            return Enumerable.Empty<RawFileMetadata>();
         }
 
         try
@@ -33,7 +33,7 @@ public class RawFileService(IOptions<PipelineSettings> settings)
             return dir
                 .EnumerateFiles("*.mp4", SearchOption.TopDirectoryOnly)
                 .OrderByDescending(f => f.CreationTimeUtc)
-                .Select(f => new RawFileDTO(
+                .Select(f => new RawFileMetadata(
                     f.Name,
                     f.Length,
                     new DateTimeOffset(f.CreationTimeUtc, TimeSpan.Zero)
