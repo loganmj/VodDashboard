@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
-using VodDashboard.Api.Models;
+using VodDashboard.Api.Domain;
 using VodDashboard.Api.DTO;
+using VodDashboard.Api.Models;
 
 namespace VodDashboard.Api.Services;
 
@@ -50,22 +51,13 @@ public class JobService
             throw new InvalidOperationException("PipelineSettings.OutputDirectory is not configured.");
         }
 
-        if (string.IsNullOrWhiteSpace(id))
-        {
-            return null;
-        }
-
-        // Validate id to prevent directory traversal attacks
-        if (id.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
-            || id.Contains(Path.DirectorySeparatorChar)
-            || id.Contains(Path.AltDirectorySeparatorChar)
-            || id.Contains("..", StringComparison.Ordinal))
+        if (!Validation.IsValidJobId(id))
         {
             return null;
         }
 
         // Use Path.GetFileName to ensure we only get the filename component
-        var safeId = Path.GetFileName(id);
+        var safeId = Validation.SanitizeJobId(id);
         var jobDir = new DirectoryInfo(Path.Combine(_settings.OutputDirectory, safeId));
 
         if (!jobDir.Exists)
@@ -108,6 +100,44 @@ public class JobService
         catch (IOException ex)
         {
             throw new InvalidOperationException("An I/O error occurred while processing a job directory.", ex);
+        }
+    }
+
+    public virtual string? GetJobLog(string id)
+    {
+        if (string.IsNullOrWhiteSpace(_settings.OutputDirectory))
+        {
+            throw new InvalidOperationException("PipelineSettings.OutputDirectory is not configured.");
+        }
+
+        if (!Validation.IsValidJobId(id))
+        {
+            return null;
+        }
+
+        // Use Path.GetFileName to ensure we only get the filename component
+        var safeId = Validation.SanitizeJobId(id);
+        var jobDir = Path.Combine(_settings.OutputDirectory, safeId);
+
+        if (!Directory.Exists(jobDir))
+            return null;
+
+        var logPath = Path.Combine(jobDir, "log.txt");
+
+        if (!File.Exists(logPath))
+            return null;
+
+        try
+        {
+            return File.ReadAllText(logPath);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            throw new InvalidOperationException("Access to the log file is denied.", ex);
+        }
+        catch (IOException ex)
+        {
+            throw new InvalidOperationException("An I/O error occurred while reading the log file.", ex);
         }
     }
 
