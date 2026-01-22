@@ -30,4 +30,32 @@ public class JobController(JobService jobService) : ControllerBase
                 detail: ex.Message);
         }
     }
+
+    [HttpGet("{id}")]
+    public IActionResult GetJobDetail(string id)
+    {
+        try
+        {
+            var job = jobService.GetJobDetail(id);
+
+            if (job == null)
+                return NotFound();
+
+            return Ok(job);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Configuration Error",
+                detail: ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Unexpected Error",
+                detail: ex.Message);
+        }
+    }
 }

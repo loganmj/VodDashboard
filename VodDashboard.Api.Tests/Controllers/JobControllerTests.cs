@@ -147,4 +147,91 @@ public class JobControllerTests
         problemDetails!.Title.Should().Be("Unexpected Error");
         problemDetails.Detail.Should().Be("Unexpected error");
     }
+
+    [Fact]
+    public void GetJobDetail_WhenJobExists_ReturnsOkWithJobDetail()
+    {
+        // Arrange
+        var jobId = "test-job";
+        var expectedJob = new JobDetailDto(
+            jobId,
+            true,
+            new List<string> { "highlight1.mp4", "highlight2.mp4" },
+            new List<string> { "scene1.csv" },
+            DateTimeOffset.UtcNow
+        );
+        var mockService = CreateMockJobService();
+        mockService.Setup(s => s.GetJobDetail(jobId)).Returns(expectedJob);
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobDetail(jobId);
+
+        // Assert
+        result.Should().BeOfType<OkObjectResult>();
+        var okResult = result as OkObjectResult;
+        okResult!.Value.Should().BeEquivalentTo(expectedJob);
+        mockService.Verify(s => s.GetJobDetail(jobId), Times.Once);
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenJobDoesNotExist_ReturnsNotFound()
+    {
+        // Arrange
+        var jobId = "nonexistent-job";
+        var mockService = CreateMockJobService();
+        mockService.Setup(s => s.GetJobDetail(jobId)).Returns((JobDetailDto?)null);
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobDetail(jobId);
+
+        // Assert
+        result.Should().BeOfType<NotFoundResult>();
+        mockService.Verify(s => s.GetJobDetail(jobId), Times.Once);
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenInvalidOperationExceptionThrown_ReturnsInternalServerError()
+    {
+        // Arrange
+        var jobId = "test-job";
+        var mockService = CreateMockJobService();
+        mockService.Setup(s => s.GetJobDetail(jobId)).Throws(new InvalidOperationException("Configuration error"));
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobDetail(jobId);
+
+        // Assert
+        result.Should().BeOfType<ObjectResult>();
+        var objectResult = result as ObjectResult;
+        objectResult!.StatusCode.Should().Be(500);
+        var problemDetails = objectResult.Value as ProblemDetails;
+        problemDetails.Should().NotBeNull();
+        problemDetails!.Title.Should().Be("Configuration Error");
+        problemDetails.Detail.Should().Be("Configuration error");
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenUnexpectedExceptionThrown_ReturnsInternalServerError()
+    {
+        // Arrange
+        var jobId = "test-job";
+        var mockService = CreateMockJobService();
+        mockService.Setup(s => s.GetJobDetail(jobId)).Throws(new Exception("Unexpected error"));
+        var controller = new JobController(mockService.Object);
+
+        // Act
+        var result = controller.GetJobDetail(jobId);
+
+        // Assert
+        result.Should().BeOfType<ObjectResult>();
+        var objectResult = result as ObjectResult;
+        objectResult!.StatusCode.Should().Be(500);
+        var problemDetails = objectResult.Value as ProblemDetails;
+        problemDetails.Should().NotBeNull();
+        problemDetails!.Title.Should().Be("Unexpected Error");
+        problemDetails.Detail.Should().Be("Unexpected error");
+    }
 }

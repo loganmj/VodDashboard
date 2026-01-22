@@ -43,6 +43,58 @@ public class JobService
         }
     }
 
+    public virtual JobDetailDto? GetJobDetail(string id)
+    {
+        if (string.IsNullOrWhiteSpace(_settings.OutputDirectory))
+        {
+            throw new InvalidOperationException("PipelineSettings.OutputDirectory is not configured.");
+        }
+
+        var jobDir = new DirectoryInfo(Path.Combine(_settings.OutputDirectory, id));
+
+        if (!jobDir.Exists)
+            return null;
+
+        try
+        {
+            var cleanPath = Path.Combine(jobDir.FullName, "clean.mp4");
+            var highlightsDir = Path.Combine(jobDir.FullName, "highlights");
+            var scenesDir = Path.Combine(jobDir.FullName, "scenes");
+
+            var highlights = Directory.Exists(highlightsDir)
+                ? Directory.GetFiles(highlightsDir, "*.mp4")
+                          .Select(Path.GetFileName)
+                          .Where(name => name != null)
+                          .Cast<string>()
+                          .ToList()
+                : new List<string>();
+
+            var scenes = Directory.Exists(scenesDir)
+                ? Directory.GetFiles(scenesDir, "*.csv")
+                          .Select(Path.GetFileName)
+                          .Where(name => name != null)
+                          .Cast<string>()
+                          .ToList()
+                : new List<string>();
+
+            return new JobDetailDto(
+                Id: id,
+                HasCleanVideo: File.Exists(cleanPath),
+                Highlights: highlights,
+                Scenes: scenes,
+                Created: jobDir.CreationTimeUtc
+            );
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            throw new InvalidOperationException("Access to a job directory is denied.", ex);
+        }
+        catch (IOException ex)
+        {
+            throw new InvalidOperationException("An I/O error occurred while processing a job directory.", ex);
+        }
+    }
+
     private Task<JobSummaryDTO> BuildJobSummaryAsync(DirectoryInfo jobDir)
     {
         try
