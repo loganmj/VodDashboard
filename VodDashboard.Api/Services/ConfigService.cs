@@ -19,9 +19,21 @@ public class ConfigService(IOptions<PipelineSettings> settings)
     {
         if (_cachedConfig == null)
         {
-            _cachedConfig = GetConfig() ?? GetDefaultConfig();
+            _cachedConfig = GetConfigOrDefault();
         }
         return _cachedConfig;
+    }
+
+    private PipelineConfig GetConfigOrDefault()
+    {
+        // If ConfigFile is not configured, use defaults
+        if (string.IsNullOrWhiteSpace(_settings.ConfigFile))
+        {
+            return GetDefaultConfig();
+        }
+
+        // Try to load from config file, fallback to defaults if it doesn't exist
+        return GetConfig() ?? GetDefaultConfig();
     }
 
     private static PipelineConfig GetDefaultConfig()
