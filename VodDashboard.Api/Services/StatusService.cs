@@ -35,13 +35,11 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
                 LastUpdated: null);
         }
 
-        // Read last non-empty line
+        // Read last non-empty line efficiently by reading from the end
         string? lastLine;
         try
         {
-            lastLine = File.ReadLines(logPath)
-                           .Reverse()
-                           .FirstOrDefault(l => !string.IsNullOrWhiteSpace(l));
+            lastLine = ReadLastNonEmptyLine(logPath);
         }
         catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
         {
@@ -81,7 +79,7 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
             
             // Extract percent if present
             int? percent = null;
-            var percentMatch = Regex.Match(lastLine, @"(\d+)%");
+            var percentMatch = PercentExtractPattern().Match(lastLine);
             if (percentMatch.Success)
             {
                 percent = int.Parse(percentMatch.Groups[1].Value);
@@ -116,8 +114,85 @@ public partial class StatusService(IOptions<PipelineSettings> settings)
 
     #region Private Methods
 
+    /// <summary>
+    /// Efficiently reads the last non-empty line from a file by reading from the end.
+    /// This avoids loading the entire file into memory for large log files.
+    /// </summary>
+    private static string? ReadLastNonEmptyLine(string filePath)
+    {
+        const int bufferSize = 4096;
+        using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        
+        if (fileStream.Length == 0)
+        {
+            return null;
+        }
+
+        var buffer = new byte[bufferSize];
+        var position = fileStream.Length;
+        var currentLine = new List<byte>();
+        
+        while (position > 0)
+        {
+            var bytesToRead = (int)Math.Min(bufferSize, position);
+            position -= bytesToRead;
+            fileStream.Seek(position, SeekOrigin.Begin);
+            
+            int bytesRead = 0;
+            while (bytesRead < bytesToRead)
+            {
+                int read = fileStream.Read(buffer, bytesRead, bytesToRead - bytesRead);
+                if (read == 0)
+                {
+                    break;
+                }
+                bytesRead += read;
+            }
+            
+            // Process bytes in reverse order
+            for (int i = bytesRead - 1; i >= 0; i--)
+            {
+                byte b = buffer[i];
+                
+                if (b == '\n' || b == '\r')
+                {
+                    if (currentLine.Count > 0)
+                    {
+                        currentLine.Reverse();
+                        var line = System.Text.Encoding.UTF8.GetString(currentLine.ToArray());
+                        if (!string.IsNullOrWhiteSpace(line))
+                        {
+                            return line;
+                        }
+                        currentLine.Clear();
+                    }
+                }
+                else
+                {
+                    currentLine.Add(b);
+                }
+            }
+        }
+        
+        // Handle the first line (or single line file)
+        if (currentLine.Count > 0)
+        {
+            currentLine.Reverse();
+            var line = System.Text.Encoding.UTF8.GetString(currentLine.ToArray());
+            if (!string.IsNullOrWhiteSpace(line))
+            {
+                return line;
+            }
+        }
+        
+        return null;
+    }
+
     [GeneratedRegex(@"\(\s*\d+%\s*\)")]
     private static partial Regex PercentagePattern();
+
+    [GeneratedRegex(@"(\d+)%")]
+    private static partial Regex PercentExtractPattern();
 
     [GeneratedRegex(@"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\]")]
     private static partial Regex TimestampPattern();
