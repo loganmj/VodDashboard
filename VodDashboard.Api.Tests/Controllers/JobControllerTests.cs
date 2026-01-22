@@ -28,8 +28,8 @@ public class JobControllerTests
         // Arrange
         var expectedJobs = new[]
         {
-            new JobSummaryDTO("job1", true, 5, 10, DateTimeOffset.UtcNow),
-            new JobSummaryDTO("job2", false, 3, 7, DateTimeOffset.UtcNow)
+            new JobData("job1", true, 5, 10, DateTimeOffset.UtcNow),
+            new JobData("job2", false, 3, 7, DateTimeOffset.UtcNow)
         };
         var mockService = CreateMockJobService();
         mockService.Setup(s => s.GetJobsAsync()).ReturnsAsync(expectedJobs);
@@ -50,7 +50,7 @@ public class JobControllerTests
     {
         // Arrange
         var mockService = CreateMockJobService();
-        mockService.Setup(s => s.GetJobsAsync()).ReturnsAsync(Enumerable.Empty<JobSummaryDTO>());
+        mockService.Setup(s => s.GetJobsAsync()).ReturnsAsync(Enumerable.Empty<JobData>());
         var controller = new JobController(mockService.Object);
 
         // Act
@@ -59,7 +59,7 @@ public class JobControllerTests
         // Assert
         result.Should().BeOfType<OkObjectResult>();
         var okResult = result as OkObjectResult;
-        okResult!.Value.Should().BeEquivalentTo(Enumerable.Empty<JobSummaryDTO>());
+        okResult!.Value.Should().BeEquivalentTo(Enumerable.Empty<JobData>());
     }
 
     [Fact]
@@ -153,11 +153,11 @@ public class JobControllerTests
     {
         // Arrange
         var jobId = "test-job";
-        var expectedJob = new JobDetailDto(
+        var expectedJob = new JobData(
             jobId,
             true,
-            new List<string> { "highlight1.mp4", "highlight2.mp4" },
-            new List<string> { "scene1.csv" },
+            2,
+            1,
             DateTimeOffset.UtcNow
         );
         var mockService = CreateMockJobService();
@@ -180,7 +180,7 @@ public class JobControllerTests
         // Arrange
         var jobId = "nonexistent-job";
         var mockService = CreateMockJobService();
-        mockService.Setup(s => s.GetJobDetail(jobId)).Returns((JobDetailDto?)null);
+        mockService.Setup(s => s.GetJobDetail(jobId)).Returns((JobData?)null);
         var controller = new JobController(mockService.Object);
 
         // Act
