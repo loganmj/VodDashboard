@@ -63,17 +63,13 @@ public class JobService
 
             var highlights = Directory.Exists(highlightsDir)
                 ? Directory.GetFiles(highlightsDir, "*.mp4")
-                          .Select(Path.GetFileName)
-                          .Where(name => name != null)
-                          .Cast<string>()
+                          .Select(f => Path.GetFileName(f)!)
                           .ToList()
                 : new List<string>();
 
             var scenes = Directory.Exists(scenesDir)
                 ? Directory.GetFiles(scenesDir, "*.csv")
-                          .Select(Path.GetFileName)
-                          .Where(name => name != null)
-                          .Cast<string>()
+                          .Select(f => Path.GetFileName(f)!)
                           .ToList()
                 : new List<string>();
 
