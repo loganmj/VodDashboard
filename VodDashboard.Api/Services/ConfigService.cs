@@ -21,58 +21,53 @@ public class ConfigService
     public virtual ConfigDto? GetConfig()
     {
         if (string.IsNullOrWhiteSpace(_settings.ConfigFile))
-            return null;
+            throw new InvalidOperationException("Config file path is not configured.");
 
         if (!File.Exists(_settings.ConfigFile))
-            return null;
+            throw new InvalidOperationException($"Config file '{_settings.ConfigFile}' does not exist.");
 
         try
         {
-            var json = File.ReadAllText(_settings.ConfigFile);
+            string json = File.ReadAllText(_settings.ConfigFile);
             return JsonSerializer.Deserialize<ConfigDto>(json);
         }
-        catch (JsonException)
+        catch (JsonException ex)
         {
-            // Invalid JSON format
-            return null;
+            throw new InvalidOperationException($"Config file '{_settings.ConfigFile}' contains invalid JSON.", ex);
         }
-        catch (IOException)
+        catch (IOException ex)
         {
-            // File I/O error
-            return null;
+            throw new InvalidOperationException($"Error reading config file '{_settings.ConfigFile}'.", ex);
         }
     }
 
     public virtual bool SaveConfig(ConfigDto config)
     {
         if (string.IsNullOrWhiteSpace(_settings.ConfigFile))
-            return false;
+            throw new InvalidOperationException("Config file path is not configured.");
 
         try
         {
-            var json = JsonSerializer.Serialize(config, _jsonOptions);
+            string json = JsonSerializer.Serialize(config, _jsonOptions);
 
             // Atomic write: write to temp file then replace
-            var tempPath = _settings.ConfigFile + ".tmp";
+            string tempPath = _settings.ConfigFile + ".tmp";
             File.WriteAllText(tempPath, json);
             File.Move(tempPath, _settings.ConfigFile, overwrite: true);
 
             return true;
         }
-        catch (JsonException)
+        catch (JsonException ex)
         {
-            // Serialization error
-            return false;
+            throw new InvalidOperationException("Failed to serialize config for saving.", ex);
         }
-        catch (IOException)
+        catch (IOException ex)
         {
-            // File I/O error
-            return false;
+            throw new InvalidOperationException($"Error writing config file '{_settings.ConfigFile}'.", ex);
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException ex)
         {
-            // Permission denied
-            return false;
+            throw new InvalidOperationException($"Access denied when writing config file '{_settings.ConfigFile}'.", ex);
         }
     }
 }
