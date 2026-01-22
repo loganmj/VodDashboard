@@ -13,7 +13,7 @@ public class RawController(RawFileService rawService) : ControllerBase
     {
         try
         {
-            IEnumerable<RawFileDTO> files = rawService.GetRawFiles();
+            IEnumerable<RawFileMetadata> files = rawService.GetRawFiles();
             return Ok(files);
         }
         catch (InvalidOperationException ex)
