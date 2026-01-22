@@ -43,6 +43,74 @@ public class JobService
         }
     }
 
+    public virtual JobDetailDto? GetJobDetail(string id)
+    {
+        if (string.IsNullOrWhiteSpace(_settings.OutputDirectory))
+        {
+            throw new InvalidOperationException("PipelineSettings.OutputDirectory is not configured.");
+        }
+
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return null;
+        }
+
+        // Validate id to prevent directory traversal attacks
+        if (id.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
+            || id.Contains(Path.DirectorySeparatorChar)
+            || id.Contains(Path.AltDirectorySeparatorChar)
+            || id.Contains("..", StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        // Use Path.GetFileName to ensure we only get the filename component
+        var safeId = Path.GetFileName(id);
+        var jobDir = new DirectoryInfo(Path.Combine(_settings.OutputDirectory, safeId));
+
+        if (!jobDir.Exists)
+            return null;
+
+        try
+        {
+            var cleanPath = Path.Combine(jobDir.FullName, "clean.mp4");
+            var highlightsDir = Path.Combine(jobDir.FullName, "highlights");
+            var scenesDir = Path.Combine(jobDir.FullName, "scenes");
+
+            var highlights = Directory.Exists(highlightsDir)
+                ? Directory.GetFiles(highlightsDir, "*.mp4")
+                          .Select(Path.GetFileName)
+                          .Where(name => !string.IsNullOrEmpty(name))
+                          .Cast<string>()
+                          .ToList()
+                : new List<string>();
+
+            var scenes = Directory.Exists(scenesDir)
+                ? Directory.GetFiles(scenesDir, "*.csv")
+                          .Select(Path.GetFileName)
+                          .Where(name => !string.IsNullOrEmpty(name))
+                          .Cast<string>()
+                          .ToList()
+                : new List<string>();
+
+            return new JobDetailDto(
+                Id: safeId,
+                HasCleanVideo: File.Exists(cleanPath),
+                Highlights: highlights,
+                Scenes: scenes,
+                Created: jobDir.CreationTimeUtc
+            );
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            throw new InvalidOperationException("Access to a job directory is denied.", ex);
+        }
+        catch (IOException ex)
+        {
+            throw new InvalidOperationException("An I/O error occurred while processing a job directory.", ex);
+        }
+    }
+
     private Task<JobSummaryDTO> BuildJobSummaryAsync(DirectoryInfo jobDir)
     {
         try

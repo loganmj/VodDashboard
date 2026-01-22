@@ -388,4 +388,367 @@ public class JobServiceTests : IDisposable
         result.SceneCount.Should().Be(0);
         result.HasCleanVideo.Should().BeFalse(); // random.mp4 is not named clean.mp4
     }
+
+    [Fact]
+    public void GetJobDetail_WhenOutputDirectoryIsEmpty_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = string.Empty,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        Action act = () => service.GetJobDetail("job1");
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("PipelineSettings.OutputDirectory is not configured.");
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenOutputDirectoryIsWhitespace_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = "   ",
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        Action act = () => service.GetJobDetail("job1");
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("PipelineSettings.OutputDirectory is not configured.");
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenJobDoesNotExist_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobDetail("nonexistent-job");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenIdIsNull_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobDetail(null!);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenIdIsEmpty_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobDetail("");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenIdIsWhitespace_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobDetail("   ");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenIdContainsParentDirectoryReference_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobDetail("../parent");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenIdContainsPathTraversal_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobDetail("../../etc/passwd");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenIdContainsDirectorySeparator_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobDetail("folder/subdir");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenIdContainsForwardSlash_ReturnsNull()
+    {
+        // Arrange
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act - Forward slash is always a directory separator
+        var result = service.GetJobDetail("job/test");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenJobExists_ReturnsJobDetail()
+    {
+        // Arrange
+        var jobId = "test-job";
+        var jobDir = Path.Combine(_testDirectory, jobId);
+        Directory.CreateDirectory(jobDir);
+
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobDetail(jobId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(jobId);
+        result.HasCleanVideo.Should().BeFalse();
+        result.Highlights.Should().BeEmpty();
+        result.Scenes.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenJobHasCleanVideo_HasCleanVideoIsTrue()
+    {
+        // Arrange
+        var jobId = "job-with-clean";
+        var jobDir = Path.Combine(_testDirectory, jobId);
+        Directory.CreateDirectory(jobDir);
+        var cleanPath = Path.Combine(jobDir, "clean.mp4");
+        File.WriteAllText(cleanPath, "clean video content");
+
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobDetail(jobId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.HasCleanVideo.Should().BeTrue();
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenJobHasHighlights_ReturnsHighlightFileNames()
+    {
+        // Arrange
+        var jobId = "job-with-highlights";
+        var jobDir = Path.Combine(_testDirectory, jobId);
+        var highlightsDir = Path.Combine(jobDir, "highlights");
+        Directory.CreateDirectory(highlightsDir);
+
+        File.WriteAllText(Path.Combine(highlightsDir, "highlight1.mp4"), "content");
+        File.WriteAllText(Path.Combine(highlightsDir, "highlight2.mp4"), "content");
+        File.WriteAllText(Path.Combine(highlightsDir, "highlight3.mp4"), "content");
+        File.WriteAllText(Path.Combine(highlightsDir, "readme.txt"), "content"); // Non-mp4
+
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobDetail(jobId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Highlights.Should().HaveCount(3);
+        result.Highlights.Should().Contain("highlight1.mp4");
+        result.Highlights.Should().Contain("highlight2.mp4");
+        result.Highlights.Should().Contain("highlight3.mp4");
+        result.Highlights.Should().NotContain("readme.txt");
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenJobHasScenes_ReturnsSceneFileNames()
+    {
+        // Arrange
+        var jobId = "job-with-scenes";
+        var jobDir = Path.Combine(_testDirectory, jobId);
+        var scenesDir = Path.Combine(jobDir, "scenes");
+        Directory.CreateDirectory(scenesDir);
+
+        File.WriteAllText(Path.Combine(scenesDir, "scene1.csv"), "content");
+        File.WriteAllText(Path.Combine(scenesDir, "scene2.csv"), "content");
+        File.WriteAllText(Path.Combine(scenesDir, "readme.txt"), "content"); // Non-csv
+
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobDetail(jobId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Scenes.Should().HaveCount(2);
+        result.Scenes.Should().Contain("scene1.csv");
+        result.Scenes.Should().Contain("scene2.csv");
+        result.Scenes.Should().NotContain("readme.txt");
+    }
+
+    [Fact]
+    public void GetJobDetail_WhenJobHasAllComponents_ReturnsCompleteJobDetail()
+    {
+        // Arrange
+        var jobId = "complete-job";
+        var jobDir = Path.Combine(_testDirectory, jobId);
+        Directory.CreateDirectory(jobDir);
+
+        // Create clean video
+        var cleanPath = Path.Combine(jobDir, "clean.mp4");
+        File.WriteAllText(cleanPath, "clean video content");
+
+        // Create highlights
+        var highlightsDir = Path.Combine(jobDir, "highlights");
+        Directory.CreateDirectory(highlightsDir);
+        File.WriteAllText(Path.Combine(highlightsDir, "h1.mp4"), "content");
+        File.WriteAllText(Path.Combine(highlightsDir, "h2.mp4"), "content");
+
+        // Create scenes
+        var scenesDir = Path.Combine(jobDir, "scenes");
+        Directory.CreateDirectory(scenesDir);
+        File.WriteAllText(Path.Combine(scenesDir, "s1.csv"), "content");
+        File.WriteAllText(Path.Combine(scenesDir, "s2.csv"), "content");
+        File.WriteAllText(Path.Combine(scenesDir, "s3.csv"), "content");
+
+        var settings = Options.Create(new PipelineSettings
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory,
+            ConfigFile = "/some/config"
+        });
+        var service = new JobService(settings);
+
+        // Act
+        var result = service.GetJobDetail(jobId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(jobId);
+        result.HasCleanVideo.Should().BeTrue();
+        result.Highlights.Should().HaveCount(2);
+        result.Highlights.Should().Contain("h1.mp4");
+        result.Highlights.Should().Contain("h2.mp4");
+        result.Scenes.Should().HaveCount(3);
+        result.Scenes.Should().Contain("s1.csv");
+        result.Scenes.Should().Contain("s2.csv");
+        result.Scenes.Should().Contain("s3.csv");
+        DirectoryInfo jobDirInfo = new DirectoryInfo(jobDir);
+        DateTimeOffset expectedCreated = new DateTimeOffset(jobDirInfo.CreationTimeUtc);
+        result.Created.Should().BeCloseTo(expectedCreated, TimeSpan.FromSeconds(5));
+    }
 }
