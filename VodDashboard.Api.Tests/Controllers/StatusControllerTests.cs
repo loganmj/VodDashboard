@@ -30,10 +30,7 @@ public class StatusControllerTests
             CurrentFile: "video.mp4",
             Stage: "Processing",
             Percent: 50,
-            Timestamp: null,
-            LastUpdated: DateTime.UtcNow,
-            EstimatedTimeRemaining: null,
-            ElapsedTime: null);
+            Timestamp: DateTime.UtcNow);
         var mockService = CreateMockStatusService();
         mockService.Setup(s => s.GetStatus()).Returns(expectedStatus);
         var controller = new StatusController(mockService.Object);
@@ -59,10 +56,7 @@ public class StatusControllerTests
             CurrentFile: null,
             Stage: null,
             Percent: null,
-            Timestamp: null,
-            LastUpdated: null,
-            EstimatedTimeRemaining: null,
-            ElapsedTime: null);
+            Timestamp: null);
         var mockService = CreateMockStatusService();
         mockService.Setup(s => s.GetStatus()).Returns(expectedStatus);
         var controller = new StatusController(mockService.Object);

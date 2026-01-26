@@ -35,10 +35,7 @@ public partial class StatusService(ConfigService configService)
                 CurrentFile: null,
                 Stage: null,
                 Percent: null,
-                Timestamp: null,
-                LastUpdated: null,
-                EstimatedTimeRemaining: null,
-                ElapsedTime: null);
+                Timestamp: null);
         }
 
         // Read last non-empty line efficiently by reading from the end
@@ -61,14 +58,11 @@ public partial class StatusService(ConfigService configService)
                 CurrentFile: null,
                 Stage: null,
                 Percent: null,
-                Timestamp: null,
-                LastUpdated: null,
-                EstimatedTimeRemaining: null,
-                ElapsedTime: null);
+                Timestamp: null);
         }
 
         // Parse timestamp from log line if present
-        DateTime? lastUpdated = ParseTimestamp(lastLine);
+        DateTime? timestamp = ParseTimestamp(lastLine);
 
         // Example log formats:
         // [2026-01-21 14:33:12] Processing file: myvideo.mp4
@@ -83,10 +77,7 @@ public partial class StatusService(ConfigService configService)
                                  CurrentFile: ExtractAfter(lastLine, "Processing file:", stripPercentage: false),
                                  Stage: "Starting",
                                  Percent: null,
-                                 Timestamp: lastUpdated,
-                                 LastUpdated: lastUpdated,
-                                 EstimatedTimeRemaining: null,
-                                 ElapsedTime: null);
+                                 Timestamp: timestamp);
         }
         else if (lastLine.Contains("Stage:"))
         {
@@ -107,10 +98,7 @@ public partial class StatusService(ConfigService configService)
                 CurrentFile: null,
                 Stage: stage,
                 Percent: percent,
-                Timestamp: lastUpdated,
-                LastUpdated: lastUpdated,
-                EstimatedTimeRemaining: null,
-                ElapsedTime: null);
+                Timestamp: timestamp);
         }
         else if (lastLine.Contains("Completed file:"))
         {
@@ -121,10 +109,7 @@ public partial class StatusService(ConfigService configService)
                 CurrentFile: null,
                 Stage: null,
                 Percent: null,
-                Timestamp: lastUpdated,
-                LastUpdated: lastUpdated,
-                EstimatedTimeRemaining: null,
-                ElapsedTime: null);
+                Timestamp: timestamp);
         }
 
         return new JobStatus(
@@ -134,10 +119,7 @@ public partial class StatusService(ConfigService configService)
             CurrentFile: null,
             Stage: null,
             Percent: null,
-            Timestamp: null,
-            LastUpdated: null,
-            EstimatedTimeRemaining: null,
-            ElapsedTime: null);
+            Timestamp: null);
     }
 
     #endregion

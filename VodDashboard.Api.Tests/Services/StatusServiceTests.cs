@@ -98,7 +98,7 @@ public class StatusServiceTests : IDisposable
         result.CurrentFile.Should().BeNull();
         result.Stage.Should().BeNull();
         result.Percent.Should().BeNull();
-        result.LastUpdated.Should().BeNull();
+        result.Timestamp.Should().BeNull();
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public class StatusServiceTests : IDisposable
         result.CurrentFile.Should().BeNull();
         result.Stage.Should().BeNull();
         result.Percent.Should().BeNull();
-        result.LastUpdated.Should().BeNull();
+        result.Timestamp.Should().BeNull();
     }
 
     [Fact]
@@ -148,7 +148,7 @@ public class StatusServiceTests : IDisposable
         result.CurrentFile.Should().BeNull();
         result.Stage.Should().BeNull();
         result.Percent.Should().BeNull();
-        result.LastUpdated.Should().BeNull();
+        result.Timestamp.Should().BeNull();
     }
 
     [Fact]
@@ -173,8 +173,8 @@ public class StatusServiceTests : IDisposable
         result.CurrentFile.Should().Be("myvideo.mp4");
         result.Stage.Should().Be("Starting");
         result.Percent.Should().BeNull();
-        result.LastUpdated.Should().NotBeNull();
-        result.LastUpdated.Should().Be(new DateTime(2026, 1, 21, 14, 33, 12));
+        result.Timestamp.Should().NotBeNull();
+        result.Timestamp.Should().Be(new DateTime(2026, 1, 21, 14, 33, 12));
     }
 
     [Fact]
@@ -199,7 +199,7 @@ public class StatusServiceTests : IDisposable
         result.CurrentFile.Should().BeNull();
         result.Stage.Should().Be("silence removal");
         result.Percent.Should().BeNull();
-        result.LastUpdated.Should().NotBeNull();
+        result.Timestamp.Should().NotBeNull();
     }
 
     [Fact]
@@ -224,7 +224,7 @@ public class StatusServiceTests : IDisposable
         result.CurrentFile.Should().BeNull();
         result.Stage.Should().Be("silence removal");
         result.Percent.Should().Be(42);
-        result.LastUpdated.Should().NotBeNull();
+        result.Timestamp.Should().NotBeNull();
     }
 
     [Fact]
@@ -249,7 +249,7 @@ public class StatusServiceTests : IDisposable
         result.CurrentFile.Should().BeNull();
         result.Stage.Should().BeNull();
         result.Percent.Should().BeNull();
-        result.LastUpdated.Should().NotBeNull();
+        result.Timestamp.Should().NotBeNull();
     }
 
     [Fact]
@@ -302,7 +302,7 @@ public class StatusServiceTests : IDisposable
         result.CurrentFile.Should().BeNull();
         result.Stage.Should().BeNull();
         result.Percent.Should().BeNull();
-        result.LastUpdated.Should().BeNull();
+        result.Timestamp.Should().BeNull();
     }
 
     [Fact]
@@ -326,7 +326,7 @@ public class StatusServiceTests : IDisposable
         result.IsRunning.Should().BeTrue();
         result.CurrentFile.Should().Be("myvideo.mp4");
         result.Stage.Should().Be("Starting");
-        result.LastUpdated.Should().BeNull();
+        result.Timestamp.Should().BeNull();
     }
 
     [Fact]

@@ -36,24 +36,9 @@ namespace VodDashboard.Api.DTO
         public int? Percent { get; }
         
         /// <summary>
-        /// Gets the timestamp when the job was created or started.
-        /// </summary>
-        public DateTime? Timestamp { get; }
-        
-        /// <summary>
         /// Gets the timestamp of the last status update.
         /// </summary>
-        public DateTime? LastUpdated { get; }
-        
-        /// <summary>
-        /// Gets the estimated time remaining for job completion.
-        /// </summary>
-        public TimeSpan? EstimatedTimeRemaining { get; }
-        
-        /// <summary>
-        /// Gets the elapsed time since the job started.
-        /// </summary>
-        public TimeSpan? ElapsedTime { get; }
+        public DateTime? Timestamp { get; }
     }
 
     public record JobStatus(
@@ -63,8 +48,5 @@ namespace VodDashboard.Api.DTO
         string? CurrentFile,
         string? Stage,
         int? Percent,
-        DateTime? Timestamp,
-        DateTime? LastUpdated,
-        TimeSpan? EstimatedTimeRemaining,
-        TimeSpan? ElapsedTime) : IJobStatus;
+        DateTime? Timestamp) : IJobStatus;
 }
