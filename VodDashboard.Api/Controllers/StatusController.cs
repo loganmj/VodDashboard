@@ -13,7 +13,7 @@ public class StatusController(StatusService statusService) : ControllerBase
     {
         try
         {
-            JobStatus status = statusService.GetStatus();
+            IJobStatus status = statusService.GetStatus();
             return Ok(status);
         }
         catch (InvalidOperationException ex)
