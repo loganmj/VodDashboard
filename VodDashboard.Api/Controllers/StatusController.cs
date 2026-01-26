@@ -9,11 +9,11 @@ namespace VodDashboard.Api.Controllers;
 public class StatusController(StatusService statusService) : ControllerBase
 {
     [HttpGet]
-    public IActionResult GetStatus()
+    public async Task<IActionResult> GetStatus()
     {
         try
         {
-            IJobStatus status = statusService.GetStatus();
+            IJobStatus status = await statusService.GetStatusAsync();
             return Ok(status);
         }
         catch (InvalidOperationException ex)

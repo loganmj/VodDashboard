@@ -1,21 +1,94 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Options;
 using VodDashboard.Api.DTO;
+using VodDashboard.Api.Models;
 using VodDashboard.Api.Services;
 
 namespace VodDashboard.Api.Services;
 
-public partial class StatusService(ConfigService configService)
+public partial class StatusService
 {
     #region Private Data
 
-    private readonly ConfigService _configService = configService;
+    private readonly ConfigService _configService;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly PipelineSettings _pipelineSettings;
+
+    #endregion
+
+    #region Constructor
+
+    public StatusService(ConfigService configService, IHttpClientFactory httpClientFactory, IOptions<PipelineSettings> pipelineSettings)
+    {
+        _configService = configService;
+        _httpClientFactory = httpClientFactory;
+        _pipelineSettings = pipelineSettings.Value;
+    }
 
     #endregion
 
     #region Public Methods
 
+    public virtual async Task<IJobStatus> GetStatusAsync()
+    {
+        // If Function endpoint is configured, proxy to it
+        if (!string.IsNullOrWhiteSpace(_pipelineSettings.FunctionStatusEndpoint))
+        {
+            return await GetStatusFromFunctionAsync();
+        }
+
+        // Otherwise, fall back to reading from local log file
+        return GetStatusFromLocalLog();
+    }
+
     public virtual IJobStatus GetStatus()
+    {
+        // If Function endpoint is configured, proxy to it synchronously
+        if (!string.IsNullOrWhiteSpace(_pipelineSettings.FunctionStatusEndpoint))
+        {
+            return GetStatusAsync().GetAwaiter().GetResult();
+        }
+
+        // Otherwise, fall back to reading from local log file
+        return GetStatusFromLocalLog();
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    private static JobStatus GetDefaultJobStatus() => new JobStatus(
+        IsRunning: false,
+        JobId: null,
+        FileName: null,
+        CurrentFile: null,
+        Stage: null,
+        Percent: null,
+        Timestamp: null);
+
+    private async Task<IJobStatus> GetStatusFromFunctionAsync()
+    {
+        try
+        {
+            var httpClient = _httpClientFactory.CreateClient();
+            var response = await httpClient.GetAsync(_pipelineSettings.FunctionStatusEndpoint);
+            response.EnsureSuccessStatusCode();
+
+            var status = await response.Content.ReadFromJsonAsync<JobStatus>();
+            return status ?? GetDefaultJobStatus();
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new InvalidOperationException($"Failed to retrieve status from Function endpoint: {ex.Message}", ex);
+        }
+        catch (Exception ex) when (ex is System.Text.Json.JsonException or NotSupportedException)
+        {
+            throw new InvalidOperationException($"Failed to parse status response from Function endpoint: {ex.Message}", ex);
+        }
+    }
+
+    private IJobStatus GetStatusFromLocalLog()
     {
         PipelineConfig config = _configService.GetCachedConfig();
 
@@ -28,14 +101,7 @@ public partial class StatusService(ConfigService configService)
 
         if (!File.Exists(logPath))
         {
-            return new JobStatus(
-                IsRunning: false,
-                JobId: null,
-                FileName: null,
-                CurrentFile: null,
-                Stage: null,
-                Percent: null,
-                Timestamp: null);
+            return GetDefaultJobStatus();
         }
 
         // Read last non-empty line efficiently by reading from the end
@@ -51,14 +117,7 @@ public partial class StatusService(ConfigService configService)
 
         if (lastLine == null)
         {
-            return new JobStatus(
-                IsRunning: false,
-                JobId: null,
-                FileName: null,
-                CurrentFile: null,
-                Stage: null,
-                Percent: null,
-                Timestamp: null);
+            return GetDefaultJobStatus();
         }
 
         // Parse timestamp from log line if present
@@ -116,14 +175,7 @@ public partial class StatusService(ConfigService configService)
                 Timestamp: timestamp);
         }
 
-        return new JobStatus(
-            IsRunning: false,
-            JobId: null,
-            FileName: null,
-            CurrentFile: null,
-            Stage: null,
-            Percent: null,
-            Timestamp: null);
+        return GetDefaultJobStatus();
     }
 
     #endregion

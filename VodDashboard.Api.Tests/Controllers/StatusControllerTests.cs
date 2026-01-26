@@ -14,13 +14,18 @@ public class StatusControllerTests
     private Mock<StatusService> CreateMockStatusService()
     {
         var mockOptions = new Mock<IOptions<PipelineSettings>>();
-        mockOptions.Setup(o => o.Value).Returns(new PipelineSettings { ConfigFile = "/test/config" });
+        mockOptions.Setup(o => o.Value).Returns(new PipelineSettings 
+        { 
+            ConfigFile = "/test/config",
+            FunctionStatusEndpoint = null
+        });
         var mockConfigService = new Mock<ConfigService>(mockOptions.Object) { CallBase = false };
-        return new Mock<StatusService>(mockConfigService.Object) { CallBase = true };
+        var mockHttpClientFactory = new Mock<IHttpClientFactory>();
+        return new Mock<StatusService>(mockConfigService.Object, mockHttpClientFactory.Object, mockOptions.Object) { CallBase = true };
     }
 
     [Fact]
-    public void GetStatus_WhenServiceReturnsStatus_ReturnsOkWithStatus()
+    public async Task GetStatus_WhenServiceReturnsStatus_ReturnsOkWithStatus()
     {
         // Arrange
         var expectedStatus = new JobStatus(
@@ -32,21 +37,21 @@ public class StatusControllerTests
             Percent: 50,
             Timestamp: DateTime.UtcNow);
         var mockService = CreateMockStatusService();
-        mockService.Setup(s => s.GetStatus()).Returns(expectedStatus);
+        mockService.Setup(s => s.GetStatusAsync()).ReturnsAsync(expectedStatus);
         var controller = new StatusController(mockService.Object);
 
         // Act
-        var result = controller.GetStatus();
+        var result = await controller.GetStatus();
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
         var okResult = result as OkObjectResult;
         okResult!.Value.Should().BeEquivalentTo(expectedStatus);
-        mockService.Verify(s => s.GetStatus(), Times.Once);
+        mockService.Verify(s => s.GetStatusAsync(), Times.Once);
     }
 
     [Fact]
-    public void GetStatus_WhenServiceReturnsNotRunning_ReturnsOkWithNotRunningStatus()
+    public async Task GetStatus_WhenServiceReturnsNotRunning_ReturnsOkWithNotRunningStatus()
     {
         // Arrange
         var expectedStatus = new JobStatus(
@@ -58,11 +63,11 @@ public class StatusControllerTests
             Percent: null,
             Timestamp: null);
         var mockService = CreateMockStatusService();
-        mockService.Setup(s => s.GetStatus()).Returns(expectedStatus);
+        mockService.Setup(s => s.GetStatusAsync()).ReturnsAsync(expectedStatus);
         var controller = new StatusController(mockService.Object);
 
         // Act
-        var result = controller.GetStatus();
+        var result = await controller.GetStatus();
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
@@ -71,15 +76,15 @@ public class StatusControllerTests
     }
 
     [Fact]
-    public void GetStatus_WhenInvalidOperationExceptionThrown_ReturnsInternalServerError()
+    public async Task GetStatus_WhenInvalidOperationExceptionThrown_ReturnsInternalServerError()
     {
         // Arrange
         var mockService = CreateMockStatusService();
-        mockService.Setup(s => s.GetStatus()).Throws(new InvalidOperationException("Configuration error"));
+        mockService.Setup(s => s.GetStatusAsync()).ThrowsAsync(new InvalidOperationException("Configuration error"));
         var controller = new StatusController(mockService.Object);
 
         // Act
-        var result = controller.GetStatus();
+        var result = await controller.GetStatus();
 
         // Assert
         result.Should().BeOfType<ObjectResult>();
@@ -92,15 +97,15 @@ public class StatusControllerTests
     }
 
     [Fact]
-    public void GetStatus_WhenUnexpectedExceptionThrown_ReturnsInternalServerError()
+    public async Task GetStatus_WhenUnexpectedExceptionThrown_ReturnsInternalServerError()
     {
         // Arrange
         var mockService = CreateMockStatusService();
-        mockService.Setup(s => s.GetStatus()).Throws(new Exception("Unexpected error"));
+        mockService.Setup(s => s.GetStatusAsync()).ThrowsAsync(new Exception("Unexpected error"));
         var controller = new StatusController(mockService.Object);
 
         // Act
-        var result = controller.GetStatus();
+        var result = await controller.GetStatus();
 
         // Assert
         result.Should().BeOfType<ObjectResult>();
@@ -113,16 +118,16 @@ public class StatusControllerTests
     }
 
     [Fact]
-    public void GetStatus_WhenWrappedIOExceptionThrown_ReturnsInternalServerError()
+    public async Task GetStatus_WhenWrappedIOExceptionThrown_ReturnsInternalServerError()
     {
         // Arrange
         var mockService = CreateMockStatusService();
         var innerException = new IOException("File access error");
-        mockService.Setup(s => s.GetStatus()).Throws(new InvalidOperationException("Unable to read pipeline status log.", innerException));
+        mockService.Setup(s => s.GetStatusAsync()).ThrowsAsync(new InvalidOperationException("Unable to read pipeline status log.", innerException));
         var controller = new StatusController(mockService.Object);
 
         // Act
-        var result = controller.GetStatus();
+        var result = await controller.GetStatus();
 
         // Assert
         result.Should().BeOfType<ObjectResult>();
