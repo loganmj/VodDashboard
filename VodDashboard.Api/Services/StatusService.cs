@@ -58,6 +58,15 @@ public partial class StatusService
 
     #region Private Methods
 
+    private static JobStatus GetDefaultJobStatus() => new JobStatus(
+        IsRunning: false,
+        JobId: null,
+        FileName: null,
+        CurrentFile: null,
+        Stage: null,
+        Percent: null,
+        Timestamp: null);
+
     private async Task<IJobStatus> GetStatusFromFunctionAsync()
     {
         try
@@ -67,14 +76,7 @@ public partial class StatusService
             response.EnsureSuccessStatusCode();
 
             var status = await response.Content.ReadFromJsonAsync<JobStatus>();
-            return status ?? new JobStatus(
-                IsRunning: false,
-                JobId: null,
-                FileName: null,
-                CurrentFile: null,
-                Stage: null,
-                Percent: null,
-                Timestamp: null);
+            return status ?? GetDefaultJobStatus();
         }
         catch (HttpRequestException ex)
         {
@@ -99,14 +101,7 @@ public partial class StatusService
 
         if (!File.Exists(logPath))
         {
-            return new JobStatus(
-                IsRunning: false,
-                JobId: null,
-                FileName: null,
-                CurrentFile: null,
-                Stage: null,
-                Percent: null,
-                Timestamp: null);
+            return GetDefaultJobStatus();
         }
 
         // Read last non-empty line efficiently by reading from the end
@@ -122,14 +117,7 @@ public partial class StatusService
 
         if (lastLine == null)
         {
-            return new JobStatus(
-                IsRunning: false,
-                JobId: null,
-                FileName: null,
-                CurrentFile: null,
-                Stage: null,
-                Percent: null,
-                Timestamp: null);
+            return GetDefaultJobStatus();
         }
 
         // Parse timestamp from log line if present
@@ -187,14 +175,7 @@ public partial class StatusService
                 Timestamp: timestamp);
         }
 
-        return new JobStatus(
-            IsRunning: false,
-            JobId: null,
-            FileName: null,
-            CurrentFile: null,
-            Stage: null,
-            Percent: null,
-            Timestamp: null);
+        return GetDefaultJobStatus();
     }
 
     #endregion
