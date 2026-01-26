@@ -63,6 +63,10 @@ public partial class StatusService(ConfigService configService)
 
         // Parse timestamp from log line if present
         DateTime? timestamp = ParseTimestamp(lastLine);
+        if (timestamp.HasValue && timestamp.Value.Kind == DateTimeKind.Unspecified)
+        {
+            timestamp = DateTime.SpecifyKind(timestamp.Value, DateTimeKind.Local);
+        }
 
         // Example log formats:
         // [2026-01-21 14:33:12] Processing file: myvideo.mp4
