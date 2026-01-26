@@ -15,7 +15,7 @@ public partial class StatusService(ConfigService configService)
 
     #region Public Methods
 
-    public virtual JobStatus GetStatus()
+    public virtual IJobStatus GetStatus()
     {
         PipelineConfig config = _configService.GetCachedConfig();
 
@@ -30,10 +30,15 @@ public partial class StatusService(ConfigService configService)
         {
             return new JobStatus(
                 IsRunning: false,
+                JobId: null,
+                FileName: null,
                 CurrentFile: null,
                 Stage: null,
                 Percent: null,
-                LastUpdated: null);
+                Timestamp: null,
+                LastUpdated: null,
+                EstimatedTimeRemaining: null,
+                ElapsedTime: null);
         }
 
         // Read last non-empty line efficiently by reading from the end
@@ -51,14 +56,19 @@ public partial class StatusService(ConfigService configService)
         {
             return new JobStatus(
                 IsRunning: false,
+                JobId: null,
+                FileName: null,
                 CurrentFile: null,
                 Stage: null,
                 Percent: null,
-                LastUpdated: null);
+                Timestamp: null,
+                LastUpdated: null,
+                EstimatedTimeRemaining: null,
+                ElapsedTime: null);
         }
 
         // Parse timestamp from log line if present
-        DateTimeOffset? lastUpdated = ParseTimestamp(lastLine);
+        DateTime? lastUpdated = ParseTimestamp(lastLine);
 
         // Example log formats:
         // [2026-01-21 14:33:12] Processing file: myvideo.mp4
@@ -68,10 +78,15 @@ public partial class StatusService(ConfigService configService)
         if (lastLine.Contains("Processing file:"))
         {
             return new JobStatus(IsRunning: true,
+                                 JobId: null,
+                                 FileName: null,
                                  CurrentFile: ExtractAfter(lastLine, "Processing file:", stripPercentage: false),
                                  Stage: "Starting",
                                  Percent: null,
-                                 LastUpdated: lastUpdated);
+                                 Timestamp: lastUpdated,
+                                 LastUpdated: lastUpdated,
+                                 EstimatedTimeRemaining: null,
+                                 ElapsedTime: null);
         }
         else if (lastLine.Contains("Stage:"))
         {
@@ -87,27 +102,42 @@ public partial class StatusService(ConfigService configService)
 
             return new JobStatus(
                 IsRunning: true,
+                JobId: null,
+                FileName: null,
                 CurrentFile: null,
                 Stage: stage,
                 Percent: percent,
-                LastUpdated: lastUpdated);
+                Timestamp: lastUpdated,
+                LastUpdated: lastUpdated,
+                EstimatedTimeRemaining: null,
+                ElapsedTime: null);
         }
         else if (lastLine.Contains("Completed file:"))
         {
             return new JobStatus(
                 IsRunning: false,
+                JobId: null,
+                FileName: null,
                 CurrentFile: null,
                 Stage: null,
                 Percent: null,
-                LastUpdated: lastUpdated);
+                Timestamp: lastUpdated,
+                LastUpdated: lastUpdated,
+                EstimatedTimeRemaining: null,
+                ElapsedTime: null);
         }
 
         return new JobStatus(
             IsRunning: false,
+            JobId: null,
+            FileName: null,
             CurrentFile: null,
             Stage: null,
             Percent: null,
-            LastUpdated: null);
+            Timestamp: null,
+            LastUpdated: null,
+            EstimatedTimeRemaining: null,
+            ElapsedTime: null);
     }
 
     #endregion

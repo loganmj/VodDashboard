@@ -25,10 +25,15 @@ public class StatusControllerTests
         // Arrange
         var expectedStatus = new JobStatus(
             IsRunning: true,
+            JobId: null,
+            FileName: null,
             CurrentFile: "video.mp4",
             Stage: "Processing",
             Percent: 50,
-            LastUpdated: DateTime.UtcNow);
+            Timestamp: null,
+            LastUpdated: DateTime.UtcNow,
+            EstimatedTimeRemaining: null,
+            ElapsedTime: null);
         var mockService = CreateMockStatusService();
         mockService.Setup(s => s.GetStatus()).Returns(expectedStatus);
         var controller = new StatusController(mockService.Object);
@@ -49,10 +54,15 @@ public class StatusControllerTests
         // Arrange
         var expectedStatus = new JobStatus(
             IsRunning: false,
+            JobId: null,
+            FileName: null,
             CurrentFile: null,
             Stage: null,
             Percent: null,
-            LastUpdated: null);
+            Timestamp: null,
+            LastUpdated: null,
+            EstimatedTimeRemaining: null,
+            ElapsedTime: null);
         var mockService = CreateMockStatusService();
         mockService.Setup(s => s.GetStatus()).Returns(expectedStatus);
         var controller = new StatusController(mockService.Object);
