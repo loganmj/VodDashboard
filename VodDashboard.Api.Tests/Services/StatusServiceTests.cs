@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Moq;
+using Moq.Protected;
 using VodDashboard.Api.DTO;
 using Microsoft.Extensions.Options;
 using VodDashboard.Api.Models;
@@ -431,5 +432,124 @@ public class StatusServiceTests : IDisposable
         result.IsRunning.Should().BeTrue();
         result.CurrentFile.Should().Be("myvideo (final).mp4");
         result.Stage.Should().Be("Starting");
+    }
+
+    [Fact]
+    public async Task GetStatusAsync_WhenFunctionEndpointConfigured_ProxiesToFunction()
+    {
+        // Arrange
+        var expectedStatus = new JobStatus(
+            IsRunning: true,
+            JobId: "job123",
+            FileName: "test.mp4",
+            CurrentFile: "test.mp4",
+            Stage: "Processing",
+            Percent: 75,
+            Timestamp: DateTime.UtcNow);
+
+        var mockConfigService = CreateMockConfigService(new PipelineConfig
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory
+        });
+
+        var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+        mockHttpMessageHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Content = new StringContent(System.Text.Json.JsonSerializer.Serialize(expectedStatus), System.Text.Encoding.UTF8, "application/json")
+            });
+
+        var httpClient = new HttpClient(mockHttpMessageHandler.Object);
+        var mockHttpClientFactory = new Mock<IHttpClientFactory>();
+        mockHttpClientFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(httpClient);
+
+        var mockPipelineSettings = new Mock<IOptions<PipelineSettings>>();
+        mockPipelineSettings.Setup(o => o.Value).Returns(new PipelineSettings
+        {
+            ConfigFile = "/dummy/config.json",
+            FunctionStatusEndpoint = "https://example.com/api/status"
+        });
+
+        var service = new StatusService(mockConfigService.Object, mockHttpClientFactory.Object, mockPipelineSettings.Object);
+
+        // Act
+        var result = await service.GetStatusAsync();
+
+        // Assert
+        result.Should().BeEquivalentTo(expectedStatus);
+    }
+
+    [Fact]
+    public async Task GetStatusAsync_WhenFunctionEndpointNotConfigured_ReadsFromLocalLog()
+    {
+        // Arrange
+        var logPath = Path.Combine(_testDirectory, "pipeline.log");
+        File.WriteAllText(logPath, "[2026-01-21 14:33:12] Processing file: test.mp4");
+
+        var mockConfigService = CreateMockConfigService(new PipelineConfig
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory
+        });
+
+        var service = CreateStatusService(mockConfigService, functionEndpoint: null);
+
+        // Act
+        var result = await service.GetStatusAsync();
+
+        // Assert
+        result.IsRunning.Should().BeTrue();
+        result.CurrentFile.Should().Be("test.mp4");
+        result.Stage.Should().Be("Starting");
+    }
+
+    [Fact]
+    public async Task GetStatusAsync_WhenFunctionEndpointReturnsError_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var mockConfigService = CreateMockConfigService(new PipelineConfig
+        {
+            InputDirectory = "/some/input",
+            OutputDirectory = _testDirectory
+        });
+
+        var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+        mockHttpMessageHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = System.Net.HttpStatusCode.InternalServerError
+            });
+
+        var httpClient = new HttpClient(mockHttpMessageHandler.Object);
+        var mockHttpClientFactory = new Mock<IHttpClientFactory>();
+        mockHttpClientFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(httpClient);
+
+        var mockPipelineSettings = new Mock<IOptions<PipelineSettings>>();
+        mockPipelineSettings.Setup(o => o.Value).Returns(new PipelineSettings
+        {
+            ConfigFile = "/dummy/config.json",
+            FunctionStatusEndpoint = "https://example.com/api/status"
+        });
+
+        var service = new StatusService(mockConfigService.Object, mockHttpClientFactory.Object, mockPipelineSettings.Object);
+
+        // Act
+        Func<Task> act = async () => await service.GetStatusAsync();
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Failed to retrieve status from Function endpoint:*");
     }
 }
