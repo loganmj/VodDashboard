@@ -10,6 +10,7 @@ builder.Services.AddSingleton<ConfigService>();
 builder.Services.AddSingleton<RawFileService>();
 builder.Services.AddSingleton<JobService>();
 builder.Services.AddSingleton<StatusService>();
+builder.Services.AddHttpClient();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

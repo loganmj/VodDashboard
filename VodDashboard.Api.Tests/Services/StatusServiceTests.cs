@@ -41,6 +41,18 @@ public class StatusServiceTests : IDisposable
         return mockConfigService;
     }
 
+    private static StatusService CreateStatusService(Mock<ConfigService> mockConfigService, string? functionEndpoint = null)
+    {
+        var mockHttpClientFactory = new Mock<IHttpClientFactory>();
+        var mockPipelineSettings = new Mock<IOptions<PipelineSettings>>();
+        mockPipelineSettings.Setup(o => o.Value).Returns(new PipelineSettings 
+        { 
+            ConfigFile = "/dummy/config.json",
+            FunctionStatusEndpoint = functionEndpoint
+        });
+        return new StatusService(mockConfigService.Object, mockHttpClientFactory.Object, mockPipelineSettings.Object);
+    }
+
     [Fact]
     public void GetStatus_WhenOutputDirectoryIsEmpty_ThrowsInvalidOperationException()
     {
@@ -50,7 +62,7 @@ public class StatusServiceTests : IDisposable
             InputDirectory = "/some/input",
             OutputDirectory = string.Empty
         });
-        var service = new StatusService(mockConfigService.Object);
+        var service = CreateStatusService(mockConfigService);
 
         // Act
         Action act = () => service.GetStatus();
@@ -69,7 +81,7 @@ public class StatusServiceTests : IDisposable
             InputDirectory = "/some/input",
             OutputDirectory = "   "
         });
-        var service = new StatusService(mockConfigService.Object);
+        var service = CreateStatusService(mockConfigService);
 
         // Act
         Action act = () => service.GetStatus();
@@ -88,7 +100,7 @@ public class StatusServiceTests : IDisposable
             InputDirectory = "/some/input",
             OutputDirectory = _testDirectory
         });
-        var service = new StatusService(mockConfigService.Object);
+        var service = CreateStatusService(mockConfigService);
 
         // Act
         var result = service.GetStatus();
@@ -113,7 +125,7 @@ public class StatusServiceTests : IDisposable
             InputDirectory = "/some/input",
             OutputDirectory = _testDirectory
         });
-        var service = new StatusService(mockConfigService.Object);
+        var service = CreateStatusService(mockConfigService);
 
         // Act
         var result = service.GetStatus();
@@ -138,7 +150,7 @@ public class StatusServiceTests : IDisposable
             InputDirectory = "/some/input",
             OutputDirectory = _testDirectory
         });
-        var service = new StatusService(mockConfigService.Object);
+        var service = CreateStatusService(mockConfigService);
 
         // Act
         var result = service.GetStatus();
@@ -163,7 +175,7 @@ public class StatusServiceTests : IDisposable
             InputDirectory = "/some/input",
             OutputDirectory = _testDirectory
         });
-        var service = new StatusService(mockConfigService.Object);
+        var service = CreateStatusService(mockConfigService);
 
         // Act
         var result = service.GetStatus();
@@ -189,7 +201,7 @@ public class StatusServiceTests : IDisposable
             InputDirectory = "/some/input",
             OutputDirectory = _testDirectory
         });
-        var service = new StatusService(mockConfigService.Object);
+        var service = CreateStatusService(mockConfigService);
 
         // Act
         var result = service.GetStatus();
@@ -214,7 +226,7 @@ public class StatusServiceTests : IDisposable
             InputDirectory = "/some/input",
             OutputDirectory = _testDirectory
         });
-        var service = new StatusService(mockConfigService.Object);
+        var service = CreateStatusService(mockConfigService);
 
         // Act
         var result = service.GetStatus();
@@ -239,7 +251,7 @@ public class StatusServiceTests : IDisposable
             InputDirectory = "/some/input",
             OutputDirectory = _testDirectory
         });
-        var service = new StatusService(mockConfigService.Object);
+        var service = CreateStatusService(mockConfigService);
 
         // Act
         var result = service.GetStatus();
@@ -269,7 +281,7 @@ public class StatusServiceTests : IDisposable
             InputDirectory = "/some/input",
             OutputDirectory = _testDirectory
         });
-        var service = new StatusService(mockConfigService.Object);
+        var service = CreateStatusService(mockConfigService);
 
         // Act
         var result = service.GetStatus();
@@ -292,7 +304,7 @@ public class StatusServiceTests : IDisposable
             InputDirectory = "/some/input",
             OutputDirectory = _testDirectory
         });
-        var service = new StatusService(mockConfigService.Object);
+        var service = CreateStatusService(mockConfigService);
 
         // Act
         var result = service.GetStatus();
@@ -317,7 +329,7 @@ public class StatusServiceTests : IDisposable
             InputDirectory = "/some/input",
             OutputDirectory = _testDirectory
         });
-        var service = new StatusService(mockConfigService.Object);
+        var service = CreateStatusService(mockConfigService);
 
         // Act
         var result = service.GetStatus();
@@ -341,7 +353,7 @@ public class StatusServiceTests : IDisposable
             InputDirectory = "/some/input",
             OutputDirectory = _testDirectory
         });
-        var service = new StatusService(mockConfigService.Object);
+        var service = CreateStatusService(mockConfigService);
 
         // Act
         var result = service.GetStatus();
@@ -364,7 +376,7 @@ public class StatusServiceTests : IDisposable
             InputDirectory = "/some/input",
             OutputDirectory = _testDirectory
         });
-        var service = new StatusService(mockConfigService.Object);
+        var service = CreateStatusService(mockConfigService);
 
         // Act
         var result = service.GetStatus();
@@ -387,7 +399,7 @@ public class StatusServiceTests : IDisposable
             InputDirectory = "/some/input",
             OutputDirectory = _testDirectory
         });
-        var service = new StatusService(mockConfigService.Object);
+        var service = CreateStatusService(mockConfigService);
 
         // Act
         var result = service.GetStatus();
@@ -410,7 +422,7 @@ public class StatusServiceTests : IDisposable
             InputDirectory = "/some/input",
             OutputDirectory = _testDirectory
         });
-        var service = new StatusService(mockConfigService.Object);
+        var service = CreateStatusService(mockConfigService);
 
         // Act
         var result = service.GetStatus();
